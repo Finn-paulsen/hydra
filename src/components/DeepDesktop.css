@@ -102,3 +102,52 @@
 .deep-taskbar-label {
   font-size: 1rem;
 }
+
+
+/* Program View */
+.deep-program-view {
+  background: #001a00;
+  color: #00ff00;
+  min-height: 100vh;
+  font-family: monospace;
+  display: flex;
+  flex-direction: column;
+}
+
+.deep-program-header {
+  background: #002800;
+  color: #00ff00;
+  padding: 18px 24px;
+  border-bottom: 2px solid #00ff00;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.deep-program-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.back-btn {
+  background: #00ff00;
+  color: #001a00;
+  border: none;
+  font-family: monospace;
+  font-size: 1rem;
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #00dd00;
+  box-shadow: 0 0 10px #00ff00;
+}
+
+.deep-program-content {
+  flex: 1;
+  overflow: hidden;
+  background: #0a0a0a;
+}
