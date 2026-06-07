@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap');
+
 	/* Datei-Explorer */
 	.file-explorer {
 		background: #232323;
@@ -666,52 +668,82 @@
 	}
 	/* Minimalistischer Behörden-Terminal-Look für Login */
 	.terminal-login-box {
-		background: #000;
-		color: #00ff00;
-		font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
-		border: 2px solid #00ff00;
+		background:
+			linear-gradient(180deg, #ddd4c7 0%, #c7bfae 48%, #b8af9d 100%);
+		color: #2f2a23;
+		font-family: 'IBM Plex Mono', 'Courier New', monospace;
+		border: 2px solid #808080;
 		border-radius: 0;
-		box-shadow: 0 0 32px #001a00;
+		box-shadow:
+			inset 1px 1px 0 #ffffff,
+			inset -1px -1px 0 #5b5b5b,
+			2px 2px 0 #404040,
+			0 12px 28px rgba(0, 0, 0, 0.35);
+		overflow: hidden;
 		max-width: 400px;
 		margin: 60px auto;
 		padding: 32px 32px 24px 32px;
 		position: relative;
 	}
+	.terminal-login-box::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background:
+			repeating-linear-gradient(0deg, rgba(255,255,255,0.04), rgba(255,255,255,0.04) 1px, transparent 1px, transparent 3px),
+			repeating-linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 4px);
+		mix-blend-mode: multiply;
+		pointer-events: none;
+		opacity: 0.18;
+	}
 	.terminal-header {
 		text-align: left;
 		margin-bottom: 18px;
+		padding: 8px 10px;
+		background: linear-gradient(180deg, #7b6b58 0%, #5f5142 100%);
+		color: #fff8eb;
+		border: 1px solid #4d4033;
+		box-shadow:
+			inset 1px 1px 0 rgba(255,255,255,0.35),
+			inset -1px -1px 0 rgba(0,0,0,0.25),
+			0 1px 0 #2d80dc;
 	}
 	.terminal-title {
-		font-weight: 900;
-		font-size: 1.3rem;
-		letter-spacing: 0.09em;
-		color: #00ff00;
+		font-weight: 700;
+		font-size: 1.12rem;
+		letter-spacing: 0.12em;
+		color: #fff8eb;
+		text-shadow: 1px 1px 0 rgba(0,0,0,0.35);
 		margin-bottom: 2px;
 	}
 	.terminal-subtitle {
-		font-weight: 700;
-		font-size: 1.09rem;
-		color: #00ff00;
+		font-weight: 600;
+		font-size: 0.92rem;
+		color: #efe6d9;
+		letter-spacing: 0.04em;
 		margin-bottom: 6px;
 	}
 	.terminal-meta {
-		font-size: 0.97rem;
-		color: #00ff00;
+		font-size: 0.82rem;
+		color: #efe5d6;
+		opacity: 0.95;
 	}
 	.terminal-warning {
-		background: #000;
-		border: 1px solid #00ff00;
+		background: linear-gradient(180deg, #efe8de 0%, #e2dbcf 100%);
+		border: 1px solid #8c8175;
 		border-radius: 0;
-		padding: 12px 14px;
+		padding: 10px 12px;
 		margin-bottom: 18px;
-		color: #00ff00;
-		font-size: 1.01rem;
-		box-shadow: 0 2px 18px #001a00;
+		color: #2d2d2d;
+		font-size: 0.98rem;
+		box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #9a9a9a;
 	}
 	.terminal-warning-title {
-		font-weight: 900;
-		font-size: 1.09rem;
-		color: #00ff00;
+		font-weight: 700;
+		font-size: 0.92rem;
+		color: #443a32;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 		margin-bottom: 8px;
 		letter-spacing: 0.09em;
 	}
@@ -724,16 +756,17 @@
 		gap: 10px;
 	}
 	.terminal-label {
-		font-size: 1.01rem;
-		color: #00ff00;
+		font-size: 0.98rem;
+		color: #2c2c2c;
 		font-weight: 700;
 		margin-bottom: 2px;
 	}
 	.terminal-input {
-		background: #000;
-		color: #00ff00;
-		border: 1px solid #00ff00;
+		background: linear-gradient(180deg, #f8f5ee 0%, #ece5d9 100%);
+		color: #231f1a;
+		border: 1px solid #7a7a7a;
 		border-radius: 0;
+		box-shadow: inset 1px 1px 0 #777, inset -1px -1px 0 #fff;
 		font-size: 1.09rem;
 		padding: 8px 10px;
 		font-family: inherit;
@@ -745,34 +778,45 @@
 		color: #888;
 	}
 	.terminal-btn {
-		background: #000;
-		color: #00ff00;
-		border: 2px solid #00ff00;
+		background: linear-gradient(180deg, #ebe5db 0%, #d3c8b6 100%);
+		color: #2b241e;
+		border: 1px solid #7a7a7a;
 		border-radius: 0;
-		font-weight: 900;
-		font-size: 1.09rem;
+		box-shadow:
+			inset 1px 1px 0 #fff,
+			inset -1px -1px 0 #7a7a7a,
+			0 2px 3px rgba(0, 0, 0, 0.18);
+		font-weight: 700;
+		font-size: 1.03rem;
 		padding: 8px 18px;
 		cursor: pointer;
-		box-shadow: 0 2px 8px #001a00;
-		transition: background 0.2s;
+		transition: background 0.15s ease;
+	}
+	.terminal-btn:hover:not(:disabled) {
+		background: linear-gradient(180deg, #ffffff 0%, #e2e2e2 100%);
+	}
+	.terminal-btn:active:not(:disabled) {
+		box-shadow:
+			inset 1px 1px 0 #7a7a7a,
+			inset -1px -1px 0 #fff;
 	}
 	.terminal-btn:disabled {
-		background: #222;
-		color: #888;
+		background: linear-gradient(180deg, #e3e3e3 0%, #d0d0d0 100%);
+		color: #7a7a7a;
 		cursor: not-allowed;
 	}
 	.terminal-message {
 		margin-top: 12px;
-		font-size: 1.01rem;
-		color: #00ff00;
+		font-size: 0.95rem;
+		color: #2f2f2f;
 		min-height: 24px;
 		font-family: inherit;
 	}
 	.terminal-countdown {
 		margin-top: 10px;
-		font-size: 1.09rem;
-		font-weight: 900;
-		color: #00ff00;
+		font-size: 0.92rem;
+		font-weight: 700;
+		color: #3b3b3b;
 	}
 	.terminal-lockdown {
 		background: #200;
@@ -1337,8 +1381,21 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: #181b1e;
+	background:
+		radial-gradient(circle at top, rgba(126, 105, 82, 0.18), transparent 30%),
+		linear-gradient(135deg, #2f2925 0%, #1d1915 45%, #171412 100%);
 	z-index: 60;
+}
+.login-overlay::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background:
+		repeating-linear-gradient(0deg, rgba(255,255,255,0.025), rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px),
+		radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 35%);
+	mix-blend-mode: soft-light;
+	opacity: 0.22;
+	pointer-events: none;
 }
 .login-box {
 	width: 420px;

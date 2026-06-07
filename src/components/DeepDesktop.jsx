@@ -119,6 +119,15 @@ function DatabasePanel() {
   );
 }
 
+const DEEP_VALID_CREDENTIALS = [
+  { user: 'deepagent', pass: 'strengeheim' },
+  { user: 'test', pass: 'test' },
+];
+
+function isDeepValidCredential(user, pass) {
+  return DEEP_VALID_CREDENTIALS.some(entry => entry.user === user && entry.pass === pass);
+}
+
 export default function DeepDesktop({ onLogout }) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState("");
@@ -129,7 +138,7 @@ export default function DeepDesktop({ onLogout }) {
   function handleLogin(e) {
     e.preventDefault();
     // Simulierter Zugang
-      if (user === "deepagent" && pass === "strengeheim") {
+      if (isDeepValidCredential(user, pass)) {
       setLoggedIn(true);
       setError("");
     } else {

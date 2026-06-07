@@ -10,14 +10,36 @@ import { Tooltip } from 'react-tooltip'
 import { motion } from 'framer-motion'
 import { useUserProfile } from '../hooks/useUserProfile'
 
-// Demo creds
-const VALID_USER = 'demo'
-const VALID_PASS = 'demo'
+// Demo creds + temporary test fallback
+const VALID_CREDENTIALS = [
+  { user: 'demo', pass: 'demo' },
+  { user: 'test', pass: 'test' },
+]
+
+function isValidCredential(user, pass) {
+  return VALID_CREDENTIALS.some(entry => entry.user === user && entry.pass === pass)
+}
 
 // Small WebAudio helpers
+let audioContextRef = null
+
+function ensureAudioContext() {
+  if (typeof window === 'undefined') return null
+  const AudioCtx = window.AudioContext || window.webkitAudioContext
+  if (!AudioCtx) return null
+  if (!audioContextRef) {
+    audioContextRef = new AudioCtx()
+  }
+  if (audioContextRef.state === 'suspended') {
+    audioContextRef.resume().catch(() => {})
+  }
+  return audioContextRef
+}
+
 function makeClickAudio() {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)()
   return (volume = 0.02, freq = 1200) => {
+    const ctx = ensureAudioContext()
+    if (!ctx) return
     const o = ctx.createOscillator()
     const g = ctx.createGain()
     o.type = 'square'
@@ -34,8 +56,9 @@ function makeClickAudio() {
 }
 
 function makeBeepAudio() {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)()
   return (freq = 800, ms = 200) => {
+    const ctx = ensureAudioContext()
+    if (!ctx) return
     const o = ctx.createOscillator()
     const g = ctx.createGain()
     o.type = 'sawtooth'
@@ -73,14 +96,21 @@ export default function LoginModal({ onSuccess }) {
   useEffect(() => {
     click.current = makeClickAudio()
     beep.current = makeBeepAudio()
+    ensureAudioContext()
     // focus with small delay for old machine feel
     setTimeout(() => userRef.current && userRef.current.focus(), 250)
     const t = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(t)
   }, [])
 
-  function playKey() {
-    try { click.current && click.current(0.008, 900) } catch (e) {}
+  async function playKey() {
+    try {
+      const ctx = ensureAudioContext()
+      if (ctx && ctx.state === 'suspended') {
+        await ctx.resume()
+      }
+      click.current && click.current(0.03, 980)
+    } catch (e) {}
   }
 
   async function simulateDelay(ms) {
@@ -101,19 +131,32 @@ export default function LoginModal({ onSuccess }) {
     if (busy) return
     setBusy(true)
     setMessage('Verbindung herstellen...')
-    await simulateDelay(700 + Math.random() * 500)
+    const legacyDelay = 900 + Math.random() * 1400
+    await simulateDelay(legacyDelay)
     setMessage('Authentifizierung läuft')
     // dot animation
     for (let i = 0; i < 3; i++){
-      await simulateDelay(450)
+      await simulateDelay(260 + Math.random() * 220)
       setMessage(prev => prev + '.')
       beep.current && beep.current(500, 60)
     }
 
     // final check
-    await simulateDelay(700)
+    await simulateDelay(500 + Math.random() * 700)
     const ts = new Date().toISOString()
-    if (user === VALID_USER && pass === VALID_PASS) {
+    const valid = isValidCredential(user, pass)
+    const legacyGlitch = Math.random() < 0.18
+
+    if (valid && legacyGlitch) {
+      setMessage('Das System antwortet unzuverlässig. Bitte erneut versuchen.')
+      beep.current && beep.current(180, 180)
+      setBusy(false)
+      setPass('')
+      userRef.current && userRef.current.focus()
+      return
+    }
+
+    if (valid) {
       setMessage('Zugriff gewährt. Initialisiere System...')
       beep.current && beep.current(1000, 140)
       writeAudit({ts, user, action: 'login', result: 'success', info: navigator.userAgent})
@@ -152,17 +195,17 @@ export default function LoginModal({ onSuccess }) {
     <div className="login-overlay" role="dialog" aria-modal="true">
       <div className="terminal-login-box">
         <div className="terminal-header">
-          <div className="terminal-title">BUNDESARCHIV</div>
-          <div className="terminal-subtitle">Zugangskontrolle</div>
+          <div className="terminal-title">BÜRORECHNER 98</div>
+          <div className="terminal-subtitle">Legacy-Zugangssteuerung</div>
           <div className="terminal-meta">
             <span>Session: {sessionId.current}</span> | <span>{format(now, 'dd.MM.yyyy HH:mm:ss')}</span>
           </div>
         </div>
         <div className="terminal-warning">
-          <div className="terminal-warning-title">ZUTRITT NUR FÜR AUTORISIERTE PERSONEN</div>
+          <div className="terminal-warning-title">ZUGRIFF AUF VERTRAULICHE SYSTEME</div>
           <div className="terminal-warning-text">
-            Jeder Zugriff wird protokolliert und überprüft.<br />
-            Unbefugte Nutzung ist strafbar (§202 StGB).
+            Jeder Zugriff wird im Protokoll verzeichnet und durch die Behördenzentrale geprüft.<br />
+            Unbefugte Nutzung ist untersagt und wird dokumentiert.
           </div>
         </div>
         {!lockdown ? (
@@ -174,7 +217,7 @@ export default function LoginModal({ onSuccess }) {
                 className="terminal-input"
                 name="username"
                 value={user}
-                onChange={e => { setUser(e.target.value); playKey() }}
+                onChange={e => { setUser(e.target.value); void playKey() }}
                 disabled={busy}
                 autoComplete="username"
                 style={{ width: '100%', marginTop: '4px' }}
@@ -187,7 +230,7 @@ export default function LoginModal({ onSuccess }) {
                 className="terminal-input"
                 name="password"
                 value={pass}
-                onChange={e => { setPass(e.target.value); playKey() }}
+                onChange={e => { setPass(e.target.value); void playKey() }}
                 disabled={busy}
                 autoComplete="current-password"
                 style={{ width: '100%', marginTop: '4px' }}
