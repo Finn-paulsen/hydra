@@ -1,78 +1,91 @@
 import React, { useEffect, useRef, useState } from 'react'
-import './terminal.css'
-import seal from '../assets/seal.svg'
 import { v4 as uuidv4 } from 'uuid'
 import { format } from 'date-fns'
 import localforage from 'localforage'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import { Tooltip } from 'react-tooltip'
-import { motion } from 'framer-motion'
 import { useUserProfile } from '../hooks/useUserProfile'
+import './LoginModal.css'
 
-// Demo creds + temporary test fallback
 const VALID_CREDENTIALS = [
   { user: 'demo', pass: 'demo' },
   { user: 'test', pass: 'test' },
+  { user: 'admin', pass: 'admin' },
 ]
 
 function isValidCredential(user, pass) {
-  return VALID_CREDENTIALS.some(entry => entry.user === user && entry.pass === pass)
+  return VALID_CREDENTIALS.some(e => e.user === user && e.pass === pass)
 }
 
-// Small WebAudio helpers
-let audioContextRef = null
-
-function ensureAudioContext() {
+let _audioCtx = null
+function getAudioCtx() {
   if (typeof window === 'undefined') return null
-  const AudioCtx = window.AudioContext || window.webkitAudioContext
-  if (!AudioCtx) return null
-  if (!audioContextRef) {
-    audioContextRef = new AudioCtx()
-  }
-  if (audioContextRef.state === 'suspended') {
-    audioContextRef.resume().catch(() => {})
-  }
-  return audioContextRef
+  const AC = window.AudioContext || window.webkitAudioContext
+  if (!AC) return null
+  if (!_audioCtx) _audioCtx = new AC()
+  if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(() => {})
+  return _audioCtx
 }
 
-function makeClickAudio() {
-  return (volume = 0.02, freq = 1200) => {
-    const ctx = ensureAudioContext()
-    if (!ctx) return
-    const o = ctx.createOscillator()
-    const g = ctx.createGain()
-    o.type = 'square'
-    o.frequency.value = freq
-    g.gain.value = volume
-    o.connect(g)
-    g.connect(ctx.destination)
-    const now = ctx.currentTime
-    o.start(now)
-    g.gain.setValueAtTime(volume, now)
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.05)
-    o.stop(now + 0.06)
-  }
+function playTone(freq, durationMs, type, volume) {
+  type = type || 'square'
+  volume = volume || 0.08
+  const ctx = getAudioCtx()
+  if (!ctx) return
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = type
+  osc.frequency.value = freq
+  gain.gain.value = 0.001
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  const now = ctx.currentTime
+  gain.gain.exponentialRampToValueAtTime(volume, now + 0.015)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + durationMs / 1000)
+  osc.start(now)
+  osc.stop(now + durationMs / 1000 + 0.02)
 }
 
-function makeBeepAudio() {
-  return (freq = 800, ms = 200) => {
-    const ctx = ensureAudioContext()
-    if (!ctx) return
-    const o = ctx.createOscillator()
-    const g = ctx.createGain()
-    o.type = 'sawtooth'
-    o.frequency.value = freq
-    g.gain.value = 0.001
-    o.connect(g)
-    g.connect(ctx.destination)
-    const now = ctx.currentTime
-    g.gain.exponentialRampToValueAtTime(0.06, now + 0.02)
-    g.gain.exponentialRampToValueAtTime(0.0001, now + ms / 1000)
-    o.start(now)
-    o.stop(now + ms / 1000 + 0.02)
-  }
+function playKeyClick() {
+  playTone(1100, 40, 'square', 0.04)
 }
+
+function playErrorBeep() {
+  playTone(220, 180, 'sawtooth', 0.10)
+  setTimeout(function() { playTone(180, 220, 'sawtooth', 0.10) }, 200)
+}
+
+function playAlarmCycle() {
+  playTone(880, 120, 'sawtooth', 0.18)
+  setTimeout(function() { playTone(660, 120, 'sawtooth', 0.18) }, 130)
+  setTimeout(function() { playTone(880, 120, 'sawtooth', 0.18) }, 260)
+  setTimeout(function() { playTone(440, 200, 'square', 0.22) }, 390)
+  setTimeout(function() { playTone(330, 180, 'sawtooth', 0.20) }, 600)
+}
+
+const BOOT_LINES = [
+  'BUNDESARCHIV-TERMINAL  v2.3.1  (C) 1987 SIEMENS AG',
+  'BIOS-PRÜFUNG.............. OK',
+  'SPEICHER: 640K BASIS / 384K ERWEITERT',
+  'FESTPLATTE C: GEFUNDEN  [ST-225  20MB]',
+  'NETZWERKADAPTER: NE2000  IRQ=3  I/O=300H',
+  'LADEN: SICHERHEITSMODUL REV.7 ............ OK',
+  'VERBINDUNG: BUNDESRECHENZENTRUM BONN',
+  'VERSCHLÜSSELUNG: DES-56  AKTIV',
+  '────────────────────────────────────────────────',
+  'ANMELDEPROTOKOLL AKTIV  –  ALLE ZUGRIFFE WERDEN ERFASST',
+]
+
+const ALARM_MESSAGES = [
+  '>>> SICHERHEITSALARM <<<',
+  'UNBEFUGTER ZUGRIFFSVERSUCH REGISTRIERT',
+  'STANDORT WIRD ERMITTELT...',
+  'VERBINDUNG ZU SICHERHEITSZENTRALE...',
+  'BEHÖRDE WIRD BENACHRICHTIGT',
+  'ALLE EINGABEN WERDEN AUFGEZEICHNET',
+  '>>> SYSTEM GESPERRT <<<',
+  'EINHEIT ALPHA – BITTE REAGIEREN',
+  'ZUGRIFF VERWEIGERT – STUFE ROT',
+  'RÜCKVERFOLGUNG AKTIV...',
+]
 
 export default function LoginModal({ onSuccess }) {
   const [user, setUser] = useState('')
@@ -81,204 +94,305 @@ export default function LoginModal({ onSuccess }) {
   const [message, setMessage] = useState('')
   const [failCount, setFailCount] = useState(0)
   const [lockdown, setLockdown] = useState(false)
-  const [alertMsg, setAlertMsg] = useState('')
-  const userRef = useRef(null)
-  const click = useRef(null)
-  const beep = useRef(null)
-  const alarmTimerRef = useRef(null)
+  const [bootDone, setBootDone] = useState(false)
+  const [bootLines, setBootLines] = useState([])
+  const [now, setNow] = useState(new Date())
+  const [glitch, setGlitch] = useState(false)
+  const [alarmPhase, setAlarmPhase] = useState(0)
+  const [alarmText, setAlarmText] = useState('')
+  const [traceWidth, setTraceWidth] = useState(0)
 
-  // User Profile Hook
+  const sessionId = useRef(uuidv4())
+  const userRef = useRef(null)
+  const alarmIntervalRef = useRef(null)
+  const alarmTextIntervalRef = useRef(null)
+  const traceIntervalRef = useRef(null)
   const { setLoginUser } = useUserProfile()
 
-  // session id + clock
-  const sessionId = useRef(uuidv4())
-  const [now, setNow] = useState(new Date())
+  useEffect(function() {
+    const t = setInterval(function() { setNow(new Date()) }, 1000)
+    return function() { clearInterval(t) }
+  }, [])
 
-  useEffect(() => {
-    click.current = makeClickAudio()
-    beep.current = makeBeepAudio()
-    ensureAudioContext()
-    // focus with small delay for old machine feel
-    setTimeout(() => userRef.current && userRef.current.focus(), 250)
-    const t = setInterval(() => setNow(new Date()), 1000)
-    return () => {
-      clearInterval(t)
-      if (alarmTimerRef.current) clearInterval(alarmTimerRef.current)
+  useEffect(function() {
+    let cancelled = false
+    let i = 0
+    function addLine() {
+      if (cancelled || i >= BOOT_LINES.length) {
+        if (!cancelled) {
+          setTimeout(function() {
+            setBootDone(true)
+            setTimeout(function() {
+              if (userRef.current) userRef.current.focus()
+            }, 200)
+          }, 400)
+        }
+        return
+      }
+      setBootLines(function(prev) { return prev.concat([BOOT_LINES[i]]) })
+      playTone(600 + i * 40, 30, 'square', 0.03)
+      i++
+      setTimeout(addLine, 120 + Math.random() * 180)
+    }
+    setTimeout(addLine, 300)
+    return function() { cancelled = true }
+  }, [])
+
+  useEffect(function() {
+    return function() {
+      if (alarmIntervalRef.current) clearInterval(alarmIntervalRef.current)
+      if (alarmTextIntervalRef.current) clearInterval(alarmTextIntervalRef.current)
+      if (traceIntervalRef.current) clearInterval(traceIntervalRef.current)
     }
   }, [])
 
-  async function playKey() {
-    try {
-      const ctx = ensureAudioContext()
-      if (ctx && ctx.state === 'suspended') {
-        await ctx.resume()
+  useEffect(function() {
+    if (!bootDone) return
+    const t = setInterval(function() {
+      if (Math.random() < 0.08) {
+        setGlitch(true)
+        setTimeout(function() { setGlitch(false) }, 80 + Math.random() * 120)
       }
-      click.current && click.current(0.03, 980)
-    } catch (e) {}
+    }, 2000)
+    return function() { clearInterval(t) }
+  }, [bootDone])
+
+  function simulateDelay(ms) {
+    return new Promise(function(r) { setTimeout(r, ms) })
   }
 
-  async function simulateDelay(ms) {
-    return new Promise(r => setTimeout(r, ms))
-  }
-
-  async function writeAudit(entry){
-    try{
+  async function writeAudit(entry) {
+    try {
       const key = 'audit_log_v1'
       const cur = (await localforage.getItem(key)) || []
       cur.push(entry)
       await localforage.setItem(key, cur)
-    }catch(e){ console.error('audit log failed', e) }
+    } catch (e) {}
+  }
+
+  function startAlarm() {
+    setAlarmPhase(1)
+    playAlarmCycle()
+    alarmIntervalRef.current = setInterval(function() {
+      playAlarmCycle()
+    }, 900)
+
+    let msgIdx = 0
+    setAlarmText(ALARM_MESSAGES[0])
+    alarmTextIntervalRef.current = setInterval(function() {
+      msgIdx = (msgIdx + 1) % ALARM_MESSAGES.length
+      setAlarmText(ALARM_MESSAGES[msgIdx])
+    }, 1200)
+
+    setTraceWidth(0)
+    traceIntervalRef.current = setInterval(function() {
+      setTraceWidth(function(w) { return w >= 100 ? 0 : w + 1 })
+    }, 80)
+
+    setTimeout(function() { setAlarmPhase(2) }, 3000)
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (busy) return
+    if (busy || lockdown) return
+    getAudioCtx()
     setBusy(true)
-    setMessage('Verbindung herstellen...')
-    const legacyDelay = 900 + Math.random() * 1400
-    await simulateDelay(legacyDelay)
-    setMessage('Authentifizierung läuft')
-    // dot animation
-    for (let i = 0; i < 3; i++){
-      await simulateDelay(260 + Math.random() * 220)
-      setMessage(prev => prev + '.')
-      beep.current && beep.current(500, 60)
+    setMessage('VERBINDUNG WIRD HERGESTELLT...')
+    await simulateDelay(600 + Math.random() * 800)
+    setMessage('AUTHENTIFIZIERUNG LÄUFT')
+    for (let i = 0; i < 3; i++) {
+      await simulateDelay(300 + Math.random() * 200)
+      setMessage(function(prev) { return prev + '.' })
+      playTone(500, 50, 'square', 0.03)
     }
-
-    // final check
-    await simulateDelay(500 + Math.random() * 700)
+    await simulateDelay(400 + Math.random() * 600)
     const ts = new Date().toISOString()
     const valid = isValidCredential(user, pass)
-    const legacyGlitch = Math.random() < 0.18
-
-    if (valid && legacyGlitch) {
-      setMessage('Das System antwortet unzuverlässig. Bitte erneut versuchen.')
-      beep.current && beep.current(180, 180)
-      setBusy(false)
-      setPass('')
-      userRef.current && userRef.current.focus()
-      return
-    }
 
     if (valid) {
-      if (alarmTimerRef.current) {
-        clearInterval(alarmTimerRef.current)
-        alarmTimerRef.current = null
+      setMessage('ZUGANG GEWÄHRT')
+      playTone(880, 80, 'square', 0.06)
+      setTimeout(function() { playTone(1100, 120, 'square', 0.06) }, 90)
+      if (setLoginUser) {
+        await setLoginUser({ username: user, loginTime: ts, sessionId: sessionId.current, isLoggedIn: true })
       }
-      setMessage('Zugriff gewährt. Initialisiere System...')
-      beep.current && beep.current(1000, 140)
-      writeAudit({ts, user, action: 'login', result: 'success', info: navigator.userAgent})
-      
-      // Speichere User-Profil persistent
-      await setLoginUser({
-        username: user,
-        loginTime: ts,
-        sessionId: sessionId.current,
-        isLoggedIn: true
-      })
-      
+      await writeAudit({ ts, user, action: 'login', result: 'success', info: navigator.userAgent })
       await simulateDelay(900)
       onSuccess && onSuccess()
       setFailCount(0)
     } else {
       const newFail = failCount + 1
       setFailCount(newFail)
-  setMessage('Authentifizierung fehlgeschlagen. Bitte erneut.')
-      beep.current && beep.current(240, 120)
-      writeAudit({ts, user: user || '(leer)', action: 'login', result: 'failure', info: navigator.userAgent})
-      setBusy(false)
-      await simulateDelay(400)
-      setPass('')
-      userRef.current && userRef.current.focus()
+      playErrorBeep()
+      await writeAudit({ ts, user: user || '(leer)', action: 'login', result: 'failure', info: navigator.userAgent })
       if (newFail >= 3) {
         setLockdown(true)
-        setAlertMsg('ALARM: Mehrfache Zugriffsversuche registriert. Sicherheitszentrale aktiv. Das System meldet einen möglichen Eindringversuch. Alle Protokolle werden gesichert und jede weitere Eingabe wird mit Priorität geprüft.')
-        setMessage('Sicherheitsprotokoll aktiv. Alarmton läuft.')
-        if (alarmTimerRef.current) clearInterval(alarmTimerRef.current)
-        alarmTimerRef.current = setInterval(() => {
-          beep.current && beep.current(180, 180)
-          beep.current && beep.current(260, 140)
-        }, 420)
-        toast.error('Sicherheitsalarm: Unbefugter Zugriff gemeldet!', { position: 'top-center', autoClose: 8000, hideProgressBar: false, closeOnClick: true, pauseOnHover: true, draggable: false })
+        setMessage('')
+        startAlarm()
+      } else {
+        setMessage('FEHLER: UNGÜLTIGE ZUGANGSDATEN  [VERSUCH ' + newFail + '/3]')
+        setBusy(false)
+        await simulateDelay(400)
+        setPass('')
+        if (userRef.current) userRef.current.focus()
       }
     }
   }
 
+  if (!bootDone) {
+    return (
+      <div className="retro-screen">
+        <div className="crt-overlay" />
+        <div className="retro-boot">
+          {bootLines.map(function(line, i) {
+            return <div key={i} className="retro-boot-line">{line}</div>
+          })}
+          {bootLines.length < BOOT_LINES.length && <span className="crt-cursor">█</span>}
+        </div>
+      </div>
+    )
+  }
+
+  if (lockdown) {
+    return (
+      <div className={'retro-screen retro-alarm-screen ' + (alarmPhase === 2 ? 'alarm-critical' : 'alarm-warning')}>
+        <div className="crt-overlay" />
+        <div className="alarm-container">
+          <div className="alarm-header-bar">
+            <span className="alarm-blink">▐▌</span>
+            <span className="alarm-title-text">SICHERHEITSALARM</span>
+            <span className="alarm-blink">▌▐</span>
+          </div>
+          <div className="alarm-box">
+            <div className="alarm-box-border">╔══════════════════════════════════════╗</div>
+            <div className="alarm-box-row">║  ZUGANG VERWEIGERT – STUFE ROT        ║</div>
+            <div className="alarm-box-row">║  TERMINAL: {sessionId.current.slice(0,10).toUpperCase()}{'  '}║</div>
+            <div className="alarm-box-row">║  {format(now, 'dd.MM.yyyy HH:mm:ss')}{'                  '}║</div>
+            <div className="alarm-box-border">╠══════════════════════════════════════╣</div>
+            <div className="alarm-box-row alarm-msg-row">║  <span className="alarm-scroll-text">{alarmText}</span>  ║</div>
+            <div className="alarm-box-border">╚══════════════════════════════════════╝</div>
+          </div>
+          <div className="alarm-warning-lines">
+            <div className="alarm-warn-line">! DREI FEHLGESCHLAGENE ANMELDEVERSUCHE !</div>
+            <div className="alarm-warn-line">! PROTOKOLL WIRD AN BEHÖRDE ÜBERMITTELT !</div>
+            <div className="alarm-warn-line alarm-blink">! DIESES TERMINAL WURDE GESPERRT !</div>
+          </div>
+          <div className="alarm-trace">
+            <div className="alarm-trace-label">RÜCKVERFOLGUNG AKTIV...</div>
+            <div className="alarm-trace-bar">
+              <div className="alarm-trace-fill" style={{ width: traceWidth + '%' }} />
+            </div>
+            <div className="alarm-blink">STANDORT WIRD ÜBERMITTELT</div>
+          </div>
+          <div className="alarm-beep-row">
+            {[0,1,2,3,4,5,6,7].map(function(i) {
+              return <span key={i} className="alarm-beep-dot" style={{ animationDelay: (i * 0.11) + 's' }}>◆</span>
+            })}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="login-overlay" role="dialog" aria-modal="true">
-      <div className="terminal-login-box">
-        <div className="terminal-header">
-          <div className="terminal-title">WINDOWS 95</div>
-          <div className="terminal-subtitle">Legacy-Zugangssteuerung</div>
-          <div className="terminal-meta">
-            <span>Session: {sessionId.current}</span> | <span>{format(now, 'dd.MM.yyyy HH:mm:ss')}</span>
+    <div className={'retro-screen' + (glitch ? ' retro-glitch' : '')}>
+      <div className="crt-overlay" />
+      <div className="retro-statusbar">
+        <span>BUNDESARCHIV-TERMINAL v2.3.1</span>
+        <span className="retro-clock">{format(now, 'dd.MM.yyyy  HH:mm:ss')}</span>
+      </div>
+      <div className="retro-login-panel">
+        <div className="retro-ascii-header">
+          <div className="retro-ascii-art">
+            {'  ██████╗  ██████╗ ██╗   ██╗'}<br/>
+            {' ██╔════╝ ██╔═══██╗██║   ██║'}<br/>
+            {' ██║  ███╗██║   ██║██║   ██║'}<br/>
+            {' ██║   ██║██║   ██║╚██╗ ██╔╝'}<br/>
+            {' ╚██████╔╝╚██████╔╝ ╚████╔╝ '}<br/>
+            {'  ╚═════╝  ╚═════╝   ╚═══╝  '}
+          </div>
+          <div className="retro-subtitle">BUNDESARCHIV  –  ZUGANGSSTEUERUNG</div>
+          <div className="retro-subtitle-small">VERTRAULICH  •  INTERN  •  NICHT FÜR DIE ÖFFENTLICHKEIT</div>
+        </div>
+        <div className="retro-divider">{'─'.repeat(44)}</div>
+        <div className="retro-info-grid">
+          <div className="retro-info-row">
+            <span className="retro-info-key">SYSTEM&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span className="retro-info-val">BUNDESRECHENZENTRUM BONN  [OFFLINE]</span>
+          </div>
+          <div className="retro-info-row">
+            <span className="retro-info-key">TERMINAL&nbsp;&nbsp;:</span>
+            <span className="retro-info-val">{sessionId.current.slice(0, 12).toUpperCase()}</span>
+          </div>
+          <div className="retro-info-row">
+            <span className="retro-info-key">SICHERHEIT:</span>
+            <span className="retro-info-val">STUFE III  –  DES-56  VERSCHLÜSSELT</span>
+          </div>
+          <div className="retro-info-row">
+            <span className="retro-info-key">STATUS&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span className="retro-info-val retro-blink-slow">BEREIT – WARTE AUF EINGABE</span>
           </div>
         </div>
-        <div className="terminal-warning">
-          <div className="terminal-warning-title">ZUGRIFF AUF VERTRAULICHE SYSTEME</div>
-          <div className="terminal-warning-text">
-            Jeder Zugriff wird im Protokoll verzeichnet und durch die Behördenzentrale geprüft.<br />
-            Unbefugte Nutzung ist untersagt und wird dokumentiert.
-          </div>
+        <div className="retro-divider">{'─'.repeat(44)}</div>
+        <div className="retro-notice">
+          <div>! WARNUNG: UNBEFUGTER ZUGRIFF IST STRAFBAR !</div>
+          <div>! ALLE AKTIVITÄTEN WERDEN PROTOKOLLIERT&nbsp;&nbsp;&nbsp;&nbsp;!</div>
         </div>
-        <div className="terminal-system-grid" aria-label="Systemdaten">
-          <div className="terminal-info-card">
-            <span className="terminal-info-label">Bereich</span>
-            <strong>Archiv-Intern</strong>
+        <div className="retro-divider">{'─'.repeat(44)}</div>
+        <form onSubmit={handleSubmit} className="retro-form">
+          <div className="retro-field">
+            <label className="retro-label" htmlFor="r-user">BENUTZER&nbsp;&nbsp;:</label>
+            <input
+              id="r-user"
+              ref={userRef}
+              className="retro-input"
+              value={user}
+              onChange={function(e) { setUser(e.target.value); playKeyClick() }}
+              disabled={busy}
+              autoComplete="username"
+              spellCheck={false}
+            />
           </div>
-          <div className="terminal-info-card">
-            <span className="terminal-info-label">Sicherheitsstufe</span>
-            <strong>Stufe III</strong>
+          <div className="retro-field">
+            <label className="retro-label" htmlFor="r-pass">KENNWORT&nbsp;&nbsp;:</label>
+            <input
+              id="r-pass"
+              type="password"
+              className="retro-input"
+              value={pass}
+              onChange={function(e) { setPass(e.target.value); playKeyClick() }}
+              disabled={busy}
+              autoComplete="current-password"
+              spellCheck={false}
+            />
           </div>
-          <div className="terminal-info-card">
-            <span className="terminal-info-label">Terminal-ID</span>
-            <strong>{sessionId.current.slice(0, 8).toUpperCase()}</strong>
+          <div className="retro-divider" style={{ marginTop: '12px' }}>{'─'.repeat(44)}</div>
+          <button className="retro-submit-btn" type="submit" disabled={busy || !user || !pass}>
+            {busy ? '[ BITTE WARTEN... ]' : '[ ANMELDEN ]'}
+          </button>
+        </form>
+        {message ? (
+          <div className="retro-message-line">
+            <span>&gt;&gt; </span>{message}<span className="crt-cursor">█</span>
           </div>
-          <div className="terminal-info-card">
-            <span className="terminal-info-label">Status</span>
-            <strong>Legacy-Login / Offline</strong>
-          </div>
+        ) : null}
+        <div className="retro-attempt-info">
+          {failCount > 0
+            ? 'FEHLVERSUCHE: ' + failCount + '/3  –  BEI 3 VERSUCHEN: SPERRUNG'
+            : 'ANMELDEVERSUCHE VERBLEIBEND: ' + (3 - failCount)
+          }
         </div>
-        {!lockdown ? (
-          <form onSubmit={handleSubmit} className="terminal-login-form" style={{ alignItems: 'center' }}>
-            <label htmlFor="login-username" style={{ width: '100%', textAlign: 'left', marginBottom: '8px' }}>Benutzername:
-              <input
-                id="login-username"
-                ref={userRef}
-                className="terminal-input"
-                name="username"
-                value={user}
-                onChange={e => { setUser(e.target.value); void playKey() }}
-                disabled={busy}
-                autoComplete="username"
-                style={{ width: '100%', marginTop: '4px' }}
-              />
-            </label>
-            <label htmlFor="login-password" style={{ width: '100%', textAlign: 'left', marginBottom: '8px' }}>Passwort:
-              <input
-                id="login-password"
-                type="password"
-                className="terminal-input"
-                name="password"
-                value={pass}
-                onChange={e => { setPass(e.target.value); void playKey() }}
-                disabled={busy}
-                autoComplete="current-password"
-                style={{ width: '100%', marginTop: '4px' }}
-              />
-            </label>
-            <button className="terminal-btn" type="submit" disabled={busy || !user || !pass} style={{ width: '100%', marginTop: '16px' }}>ANMELDEN</button>
-          </form>
-        ) : (
-          <div className="terminal-lockdown">
-            <div className="terminal-lockdown-title">SICHERHEITSALARM</div>
-            <div className="terminal-lockdown-msg">{alertMsg}</div>
-          </div>
-        )}
-        <div className="terminal-message">{message}</div>
-        <div className="terminal-countdown">
-          {lockdown ? "Zugang gesperrt" : `Sperre nach ${3 - failCount} Fehlversuchen`}
+        <div className="retro-divider" style={{ marginTop: '8px' }}>{'─'.repeat(44)}</div>
+        <div className="retro-footer">
+          <div>SIEMENS NIXDORF  •  BUNDESARCHIV-SYSTEM  •  1987</div>
+          <div>SUPPORT: BONN 0228-99-0  •  NOTFALL: 110</div>
         </div>
+      </div>
+      <div className="retro-bottombar">
+        <span>F1=HILFE</span>
+        <span>F5=NEUSTART</span>
+        <span>ESC=ABBRUCH</span>
+        <span className="retro-blink-slow">■ ONLINE</span>
       </div>
     </div>
   )

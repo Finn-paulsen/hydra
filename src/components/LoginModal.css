@@ -1,0 +1,607 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   BUNDESARCHIV-TERMINAL  –  RETRO LOGIN STYLES
+   Inspired by: Siemens Nixdorf terminals, DOS 3.x, CRT phosphor monitors
+   Designed to look like it hasn't been touched since 1987.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+
+/* ─── Root variables ──────────────────────────────────────────────────────── */
+:root {
+  --phosphor: #33ff33;
+  --phosphor-dim: #1a8c1a;
+  --phosphor-bright: #66ff66;
+  --phosphor-glow: rgba(51, 255, 51, 0.18);
+  --bg-dark: #020a02;
+  --bg-panel: #040d04;
+  --alarm-red: #ff2200;
+  --alarm-red-dim: #8b1200;
+  --alarm-orange: #ff6600;
+  --scan-color: rgba(51, 255, 51, 0.04);
+  --font-mono: 'VT323', 'Share Tech Mono', 'Courier New', monospace;
+}
+
+/* ─── Full-screen CRT base ────────────────────────────────────────────────── */
+.retro-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-dark);
+  font-family: var(--font-mono);
+  color: var(--phosphor);
+  font-size: 16px;
+  line-height: 1.4;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* CRT curvature vignette */
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85),
+              inset 0 0 40px rgba(0, 0, 0, 0.6);
+  /* Slight screen warp */
+  border-radius: 4px;
+  z-index: 9999;
+}
+
+/* ─── CRT scanlines + noise overlay ─────────────────────────────────────── */
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+  /* Horizontal scanlines */
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.18) 2px,
+    rgba(0, 0, 0, 0.18) 4px
+  );
+  /* Subtle vignette */
+  mask-image: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.5) 100%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.5) 100%);
+  animation: crtNoise 0.08s steps(1) infinite;
+}
+
+@keyframes crtNoise {
+  0%   { opacity: 0.85; transform: translateY(0px); }
+  25%  { opacity: 0.90; transform: translateY(-0.5px); }
+  50%  { opacity: 0.80; transform: translateY(0.5px); }
+  75%  { opacity: 0.88; transform: translateY(-0.3px); }
+  100% { opacity: 0.85; transform: translateY(0px); }
+}
+
+/* ─── Phosphor text glow ─────────────────────────────────────────────────── */
+.retro-screen * {
+  text-shadow: 0 0 6px var(--phosphor-glow), 0 0 2px var(--phosphor-dim);
+}
+
+/* ─── Glitch effect ──────────────────────────────────────────────────────── */
+.retro-glitch {
+  animation: glitchFrame 0.1s steps(2) forwards;
+}
+
+@keyframes glitchFrame {
+  0%   { transform: translate(0, 0) skewX(0deg); filter: brightness(1); }
+  20%  { transform: translate(-3px, 1px) skewX(1deg); filter: brightness(1.4) hue-rotate(10deg); }
+  40%  { transform: translate(2px, -1px) skewX(-1deg); filter: brightness(0.8); }
+  60%  { transform: translate(-1px, 2px) skewX(0.5deg); filter: brightness(1.2); }
+  80%  { transform: translate(1px, 0) skewX(0deg); filter: brightness(1); }
+  100% { transform: translate(0, 0) skewX(0deg); filter: brightness(1); }
+}
+
+/* ─── Status bar (top) ───────────────────────────────────────────────────── */
+.retro-statusbar {
+  width: 100%;
+  padding: 4px 12px;
+  background: var(--phosphor);
+  color: var(--bg-dark);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  text-shadow: none;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.retro-clock {
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+}
+
+/* ─── Bottom bar ─────────────────────────────────────────────────────────── */
+.retro-bottombar {
+  width: 100%;
+  padding: 4px 12px;
+  background: var(--phosphor);
+  color: var(--bg-dark);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  display: flex;
+  justify-content: space-around;
+  text-shadow: none;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+/* ─── Scrollable login panel ─────────────────────────────────────────────── */
+.retro-login-panel {
+  flex: 1;
+  width: 100%;
+  max-width: 520px;
+  padding: 12px 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* Hide scrollbar for retro feel */
+  scrollbar-width: none;
+}
+.retro-login-panel::-webkit-scrollbar { display: none; }
+
+/* ─── ASCII art header ───────────────────────────────────────────────────── */
+.retro-ascii-header {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.retro-ascii-art {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--phosphor-bright);
+  text-shadow: 0 0 10px var(--phosphor), 0 0 4px var(--phosphor-dim);
+  display: block;
+  white-space: pre;
+  overflow: hidden;
+  letter-spacing: 0;
+}
+
+.retro-subtitle {
+  font-size: 15px;
+  letter-spacing: 0.15em;
+  margin-top: 6px;
+  color: var(--phosphor-bright);
+}
+
+.retro-subtitle-small {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--phosphor-dim);
+  margin-top: 2px;
+}
+
+/* ─── Divider ────────────────────────────────────────────────────────────── */
+.retro-divider {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--phosphor-dim);
+  letter-spacing: 0;
+  margin: 6px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ─── Info grid ──────────────────────────────────────────────────────────── */
+.retro-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0;
+}
+
+.retro-info-row {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.retro-info-key {
+  color: var(--phosphor-dim);
+  white-space: nowrap;
+  font-size: 13px;
+  min-width: 100px;
+}
+
+.retro-info-val {
+  color: var(--phosphor);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+/* ─── Warning notice ─────────────────────────────────────────────────────── */
+.retro-notice {
+  font-size: 13px;
+  color: var(--phosphor-bright);
+  text-align: center;
+  margin: 4px 0;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 8px var(--phosphor), 0 0 3px var(--phosphor-dim);
+}
+
+/* ─── Form ───────────────────────────────────────────────────────────────── */
+.retro-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.retro-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.retro-label {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--phosphor-dim);
+  white-space: nowrap;
+  min-width: 100px;
+  cursor: default;
+}
+
+.retro-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--phosphor-dim);
+  color: var(--phosphor-bright);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  padding: 2px 4px;
+  outline: none;
+  caret-color: var(--phosphor);
+  text-shadow: 0 0 8px var(--phosphor), 0 0 3px var(--phosphor-dim);
+  letter-spacing: 0.08em;
+  /* Aged, slightly yellowed look */
+  filter: sepia(0.1) brightness(0.95);
+  transition: border-color 0.2s;
+}
+
+.retro-input:focus {
+  border-bottom-color: var(--phosphor-bright);
+  text-shadow: 0 0 12px var(--phosphor), 0 0 5px var(--phosphor-dim);
+}
+
+.retro-input:disabled {
+  opacity: 0.5;
+}
+
+/* ─── Submit button ──────────────────────────────────────────────────────── */
+.retro-submit-btn {
+  background: transparent;
+  border: 1px solid var(--phosphor);
+  color: var(--phosphor-bright);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  padding: 8px 16px;
+  cursor: pointer;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 8px var(--phosphor), 0 0 3px var(--phosphor-dim);
+  transition: background 0.15s, color 0.15s;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.retro-submit-btn:not(:disabled):hover {
+  background: var(--phosphor);
+  color: var(--bg-dark);
+  text-shadow: none;
+}
+
+.retro-submit-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: var(--phosphor-dim);
+  color: var(--phosphor-dim);
+}
+
+/* ─── Message line ───────────────────────────────────────────────────────── */
+.retro-message-line {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--phosphor-bright);
+  margin-top: 8px;
+  min-height: 20px;
+  text-shadow: 0 0 10px var(--phosphor);
+  letter-spacing: 0.05em;
+}
+
+/* ─── Attempt counter ────────────────────────────────────────────────────── */
+.retro-attempt-info {
+  font-size: 12px;
+  color: var(--phosphor-dim);
+  margin-top: 6px;
+  letter-spacing: 0.04em;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+.retro-footer {
+  font-size: 11px;
+  color: var(--phosphor-dim);
+  text-align: center;
+  margin-top: 4px;
+  line-height: 1.6;
+  opacity: 0.7;
+}
+
+/* ─── Blinking cursor ────────────────────────────────────────────────────── */
+.crt-cursor {
+  animation: cursorBlink 0.9s step-end infinite;
+  color: var(--phosphor-bright);
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ─── Slow blink ─────────────────────────────────────────────────────────── */
+.retro-blink-slow {
+  animation: slowBlink 1.4s step-end infinite;
+}
+
+@keyframes slowBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* ─── Boot screen ────────────────────────────────────────────────────────── */
+.retro-boot {
+  flex: 1;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.retro-boot-line {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--phosphor);
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  animation: fadeInLine 0.1s ease-in;
+}
+
+@keyframes fadeInLine {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ALARM / LOCKDOWN SCREEN
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.retro-alarm-screen {
+  background: #0a0000 !important;
+  color: var(--alarm-red) !important;
+}
+
+.retro-alarm-screen * {
+  text-shadow: 0 0 8px rgba(255, 34, 0, 0.6), 0 0 3px rgba(255, 34, 0, 0.3) !important;
+}
+
+/* Warning phase: dark red flicker */
+.alarm-warning {
+  animation: alarmFlickerWarn 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes alarmFlickerWarn {
+  0%   { background-color: #0a0000; }
+  100% { background-color: #1a0000; }
+}
+
+/* Critical phase: intense red flash */
+.alarm-critical {
+  animation: alarmFlickerCrit 0.35s steps(2) infinite;
+}
+
+@keyframes alarmFlickerCrit {
+  0%   { background-color: #0a0000; }
+  50%  { background-color: #1f0000; }
+  100% { background-color: #0a0000; }
+}
+
+/* ─── Alarm container ────────────────────────────────────────────────────── */
+.alarm-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  gap: 16px;
+  width: 100%;
+  max-width: 520px;
+}
+
+/* ─── Alarm header bar ───────────────────────────────────────────────────── */
+.alarm-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 22px;
+  letter-spacing: 0.2em;
+  color: var(--alarm-red);
+  width: 100%;
+  padding: 8px;
+  border: 2px solid var(--alarm-red);
+  background: rgba(255, 34, 0, 0.08);
+}
+
+.alarm-title-text {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  letter-spacing: 0.3em;
+  color: #ff4422;
+}
+
+/* ─── Blinking alarm elements ────────────────────────────────────────────── */
+.alarm-blink {
+  animation: alarmBlink 0.4s step-end infinite;
+  color: var(--alarm-red);
+}
+
+@keyframes alarmBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ─── ASCII box ──────────────────────────────────────────────────────────── */
+.alarm-box {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--alarm-red);
+  width: 100%;
+  line-height: 1.7;
+  letter-spacing: 0.03em;
+}
+
+.alarm-box-border {
+  color: var(--alarm-red-dim);
+  letter-spacing: 0;
+}
+
+.alarm-box-row {
+  color: var(--alarm-red);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.alarm-msg-row {
+  color: #ff6644;
+  animation: alarmMsgPulse 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes alarmMsgPulse {
+  from { color: #ff4422; }
+  to   { color: #ff8866; }
+}
+
+.alarm-scroll-text {
+  display: inline-block;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Warning lines ──────────────────────────────────────────────────────── */
+.alarm-warning-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.alarm-warn-line {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--alarm-red);
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+/* ─── Trace bar ──────────────────────────────────────────────────────────── */
+.alarm-trace {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.alarm-trace-label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--alarm-red);
+  letter-spacing: 0.06em;
+}
+
+.alarm-trace-bar {
+  width: 100%;
+  height: 12px;
+  border: 1px solid var(--alarm-red-dim);
+  background: rgba(255, 34, 0, 0.05);
+  overflow: hidden;
+}
+
+.alarm-trace-fill {
+  height: 100%;
+  background: var(--alarm-red);
+  box-shadow: 0 0 8px var(--alarm-red);
+  transition: width 0.08s linear;
+}
+
+/* ─── Beep dots ──────────────────────────────────────────────────────────── */
+.alarm-beep-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.alarm-beep-dot {
+  font-size: 16px;
+  color: var(--alarm-red);
+  animation: beepDotPulse 0.88s ease-in-out infinite;
+}
+
+@keyframes beepDotPulse {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50%       { opacity: 1;   transform: scale(1.2); color: #ff6644; }
+}
+
+/* ─── Phosphor burn-in effect (decorative) ───────────────────────────────── */
+.retro-login-panel::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    rgba(51, 255, 51, 0.04) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ─── Mobile adjustments ─────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .retro-ascii-art {
+    font-size: 10px;
+  }
+  .retro-login-panel {
+    padding: 8px 10px;
+  }
+  .retro-info-key {
+    min-width: 80px;
+    font-size: 11px;
+  }
+  .retro-info-val {
+    font-size: 11px;
+  }
+  .retro-label {
+    font-size: 12px;
+    min-width: 80px;
+  }
+  .retro-input {
+    font-size: 13px;
+  }
+  .retro-submit-btn {
+    font-size: 14px;
+  }
+  .alarm-title-text {
+    font-size: 16px;
+  }
+  .alarm-box {
+    font-size: 11px;
+  }
+}
