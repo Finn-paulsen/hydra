@@ -55,29 +55,50 @@ function playErrorBeep() {
   setTimeout(() => playTone(220, 200, 'sawtooth', 0.09), 180)
 }
 
-// Bedrohlicher Alarm – tiefe, langsame Sirene
+// Bedrohlicher Alarm – mehrstufige Behörden-Sirene
 function playAlarmCycle() {
   const ctx = getAudioCtx()
   if (!ctx) return
-  // Tiefe Sirene: langsam von 220 auf 440 und zurück
-  const osc = ctx.createOscillator()
-  const gain = ctx.createGain()
-  osc.type = 'sawtooth'
-  osc.frequency.value = 220
-  gain.gain.value = 0.001
-  osc.connect(gain)
-  gain.connect(ctx.destination)
   const now = ctx.currentTime
-  gain.gain.exponentialRampToValueAtTime(0.15, now + 0.05)
-  osc.frequency.exponentialRampToValueAtTime(380, now + 0.6)
-  osc.frequency.exponentialRampToValueAtTime(220, now + 1.2)
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.3)
-  osc.start(now)
-  osc.stop(now + 1.35)
 
-  // Zweiter Ton – kurzer harter Beep
-  playTone(660, 80, 'square', 0.12, 0.1)
-  playTone(440, 80, 'square', 0.10, 0.25)
+  // Schicht 1: Tiefe Warnsirene (langsam auf/ab)
+  const siren = ctx.createOscillator()
+  const sirenGain = ctx.createGain()
+  siren.type = 'sawtooth'
+  siren.frequency.value = 160
+  sirenGain.gain.value = 0.001
+  siren.connect(sirenGain)
+  sirenGain.connect(ctx.destination)
+  sirenGain.gain.exponentialRampToValueAtTime(0.18, now + 0.08)
+  siren.frequency.exponentialRampToValueAtTime(320, now + 0.5)
+  siren.frequency.exponentialRampToValueAtTime(160, now + 1.1)
+  siren.frequency.exponentialRampToValueAtTime(320, now + 1.6)
+  siren.frequency.exponentialRampToValueAtTime(160, now + 2.1)
+  sirenGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2)
+  siren.start(now)
+  siren.stop(now + 2.25)
+
+  // Schicht 2: Harter Alarm-Beep (3x kurz)
+  playTone(880, 60, 'square', 0.14, 0.05)
+  playTone(880, 60, 'square', 0.14, 0.22)
+  playTone(880, 60, 'square', 0.14, 0.39)
+
+  // Schicht 3: Tiefer Brummton (Hintergrund)
+  const drone = ctx.createOscillator()
+  const droneGain = ctx.createGain()
+  drone.type = 'triangle'
+  drone.frequency.value = 55
+  droneGain.gain.value = 0.001
+  drone.connect(droneGain)
+  droneGain.connect(ctx.destination)
+  droneGain.gain.exponentialRampToValueAtTime(0.08, now + 0.1)
+  droneGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.0)
+  drone.start(now)
+  drone.stop(now + 2.1)
+
+  // Schicht 4: Kurzer Hochton-Blitz nach 1.2s
+  playTone(1200, 40, 'square', 0.10, 1.2)
+  playTone(900, 40, 'square', 0.08, 1.3)
 }
 
 function playSuccessChime() {
@@ -408,7 +429,7 @@ export default function LoginModal({ onSuccess, policyOnly = false }) {
     playAlarmCycle()
     alarmIntervalRef.current = setInterval(() => {
       playAlarmCycle()
-    }, 1400)
+    }, 2400)
 
     let msgIdx = 0
     setAlarmText(ALARM_MESSAGES_ROTATING[0])
