@@ -666,232 +666,200 @@
 		font-weight: 900;
 		color: #ffbf47;
 	}
-	/* Minimalistischer Behörden-Terminal-Look für Login */
+	/* ============================================================
+	   ███  ALT-BEHÖRDEN-LOGIN / WINDOWS-95-ATMOSPHÄRE  ███
+	   ============================================================ */
 	.terminal-login-box {
 		background:
-			linear-gradient(180deg, #ddd4c7 0%, #c7bfae 48%, #b8af9d 100%);
-		color: #2f2a23;
-		font-family: 'IBM Plex Mono', 'Courier New', monospace;
-		border: 2px solid #808080;
-		border-radius: 0;
-		box-shadow:
-			inset 1px 1px 0 #ffffff,
-			inset -1px -1px 0 #5b5b5b,
-			2px 2px 0 #404040,
-			0 12px 28px rgba(0, 0, 0, 0.35);
-		overflow: hidden;
-		max-width: 400px;
+			linear-gradient(180deg, #18130d 0%, #241b11 48%, #120d08 100%);
+		border: 2px solid #b88a3b;
+		color: #ffdd9b;
+		font-family: 'Fira Mono', 'Courier New', monospace;
+		max-width: 480px;
+		padding: 28px 32px 24px 32px;
 		margin: 60px auto;
-		padding: 32px 32px 24px 32px;
 		position: relative;
+		box-shadow:
+			0 0 0 1px rgba(255, 221, 155, 0.06) inset,
+			0 0 24px rgba(0, 0, 0, 0.65) inset,
+			0 0 28px rgba(30, 18, 0, 0.85);
+		filter: contrast(0.94) brightness(0.84);
+		animation: crtAmberFlicker 4s infinite;
 	}
 	.terminal-login-box::before {
-		content: '';
+		content: "";
 		position: absolute;
 		inset: 0;
 		background:
-			repeating-linear-gradient(0deg, rgba(255,255,255,0.04), rgba(255,255,255,0.04) 1px, transparent 1px, transparent 3px),
-			repeating-linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 4px);
-		mix-blend-mode: multiply;
+			repeating-linear-gradient(180deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 4px),
+			radial-gradient(circle at top, rgba(255,255,255,0.04), transparent 25%);
 		pointer-events: none;
-		opacity: 0.18;
+		opacity: 0.24;
+	}
+	.terminal-login-box::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background:
+			url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+ZMhUlQAAAABJRU5ErkJggg==") center/cover no-repeat;
+		opacity: 0.08;
+		mix-blend-mode: screen;
+		pointer-events: none;
 	}
 	.terminal-header {
-		text-align: left;
-		margin-bottom: 18px;
-		padding: 8px 10px;
-		background: linear-gradient(180deg, #7b6b58 0%, #5f5142 100%);
-		color: #fff8eb;
-		border: 1px solid #4d4033;
-		box-shadow:
-			inset 1px 1px 0 rgba(255,255,255,0.35),
-			inset -1px -1px 0 rgba(0,0,0,0.25),
-			0 1px 0 #2d80dc;
+		margin-bottom: 14px;
 	}
 	.terminal-title {
-		font-weight: 700;
 		font-size: 1.12rem;
-		letter-spacing: 0.12em;
-		color: #fff8eb;
-		text-shadow: 1px 1px 0 rgba(0,0,0,0.35);
-		margin-bottom: 2px;
+		font-weight: 900;
+		color: #ffe8b8;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		text-shadow: 0 0 8px rgba(255, 221, 155, 0.35);
 	}
-	.terminal-subtitle {
-		font-weight: 600;
-		font-size: 0.92rem;
-		color: #efe6d9;
-		letter-spacing: 0.04em;
-		margin-bottom: 6px;
-	}
+	.terminal-subtitle,
 	.terminal-meta {
-		font-size: 0.82rem;
-		color: #efe5d6;
-		opacity: 0.95;
+		color: #e3c68a;
+		font-size: 0.88rem;
+		opacity: 0.9;
 	}
 	.terminal-warning {
-		background: linear-gradient(180deg, #efe8de 0%, #e2dbcf 100%);
-		border: 1px solid #8c8175;
-		border-radius: 0;
-		padding: 10px 12px;
-		margin-bottom: 18px;
-		color: #2d2d2d;
-		font-size: 0.98rem;
-		box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #9a9a9a;
+		background: linear-gradient(180deg, #251b12 0%, #19140d 100%);
+		border: 1px solid #b88a3b;
+		color: #ffe7b4;
+		box-shadow: 0 0 12px rgba(0,0,0,0.45) inset, 0 0 10px rgba(184,138,59,0.16);
 	}
-	.terminal-warning-title {
-		font-weight: 700;
-		font-size: 0.92rem;
-		color: #443a32;
-		letter-spacing: 0.08em;
+	.terminal-system-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+		margin: 10px 0 12px;
+	}
+	.terminal-info-card {
+		background: linear-gradient(180deg, #2d2317 0%, #1f180f 100%);
+		border: 1px solid #b88a3b;
+		padding: 8px 10px;
+		box-shadow: 0 0 8px rgba(0,0,0,0.45) inset;
+	}
+	.terminal-info-label {
+		display: block;
+		font-size: 0.72rem;
+		letter-spacing: 0.14em;
 		text-transform: uppercase;
-		margin-bottom: 8px;
-		letter-spacing: 0.09em;
-	}
-	.terminal-warning-text {
-		margin-bottom: 8px;
-	}
-	.terminal-login-form {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
-	.terminal-label {
-		font-size: 0.98rem;
-		color: #2c2c2c;
-		font-weight: 700;
+		color: #d7b87a;
 		margin-bottom: 2px;
 	}
-	.terminal-input {
-		background: linear-gradient(180deg, #f8f5ee 0%, #ece5d9 100%);
-		color: #231f1a;
-		border: 1px solid #7a7a7a;
-		border-radius: 0;
-		box-shadow: inset 1px 1px 0 #777, inset -1px -1px 0 #fff;
-		font-size: 1.09rem;
-		padding: 8px 10px;
-		font-family: inherit;
-		outline: none;
-		margin-bottom: 8px;
+	.terminal-info-card strong {
+		display: block;
+		font-size: 0.88rem;
+		color: #ffe7b4;
+		font-weight: 900;
 	}
-	.terminal-input:disabled {
-		background: #222;
-		color: #888;
+	.terminal-label {
+		color: #ffe7b4;
+		font-size: 0.95rem;
+		font-weight: 700;
+	}
+	.terminal-input {
+		background: linear-gradient(180deg, #1e170f 0%, #140f09 100%);
+		color: #ffe7b4;
+		border: 1px solid #b88a3b;
+		font-family: inherit;
+		font-size: 1.05rem;
+		padding: 8px 10px;
+		caret-color: #ffe7b4;
+		box-shadow: 0 0 6px rgba(0,0,0,0.45) inset;
+	}
+	.terminal-input:focus {
+		outline: none;
+		border-color: #ffe7b4;
+		box-shadow: 0 0 8px rgba(255,221,155,0.18) inset;
 	}
 	.terminal-btn {
-		background: linear-gradient(180deg, #ebe5db 0%, #d3c8b6 100%);
-		color: #2b241e;
-		border: 1px solid #7a7a7a;
-		border-radius: 0;
-		box-shadow:
-			inset 1px 1px 0 #fff,
-			inset -1px -1px 0 #7a7a7a,
-			0 2px 3px rgba(0, 0, 0, 0.18);
-		font-weight: 700;
-		font-size: 1.03rem;
-		padding: 8px 18px;
-		cursor: pointer;
-		transition: background 0.15s ease;
+		background: linear-gradient(180deg, #2a2015 0%, #1a150f 100%);
+		color: #ffe7b4;
+		border: 1px solid #b88a3b;
+		font-weight: 900;
+		text-shadow: 0 0 4px rgba(255,221,155,0.25);
+		box-shadow: 0 0 10px rgba(0,0,0,0.35) inset;
 	}
 	.terminal-btn:hover:not(:disabled) {
-		background: linear-gradient(180deg, #ffffff 0%, #e2e2e2 100%);
-	}
-	.terminal-btn:active:not(:disabled) {
-		box-shadow:
-			inset 1px 1px 0 #7a7a7a,
-			inset -1px -1px 0 #fff;
+		background: linear-gradient(180deg, #342a18 0%, #21190f 100%);
+		border-color: #ffe7b4;
 	}
 	.terminal-btn:disabled {
-		background: linear-gradient(180deg, #e3e3e3 0%, #d0d0d0 100%);
-		color: #7a7a7a;
-		cursor: not-allowed;
+		opacity: 0.45;
 	}
-	.terminal-message {
-		margin-top: 12px;
-		font-size: 0.95rem;
-		color: #2f2f2f;
-		min-height: 24px;
-		font-family: inherit;
-	}
+	.terminal-message,
 	.terminal-countdown {
-		margin-top: 10px;
-		font-size: 0.92rem;
-		font-weight: 700;
-		color: #3b3b3b;
+		color: #ffe7b4;
+		text-shadow: 0 0 4px rgba(255,221,155,0.18);
 	}
-	.terminal-lockdown {
-		background: #200;
-		color: #fff;
-		border: 2px solid #ff2d2d;
-		font-size: 1.08rem;
-		font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
-		padding: 16px 18px 14px 18px;
-		margin-bottom: 10px;
-		margin-top: 10px;
-		box-shadow: 0 4px 18px rgba(255,0,0,0.22);
-		letter-spacing: 0.07em;
-		text-align: left;
-		z-index: 3;
-		font-weight: 900;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 8px;
+	@keyframes crtAmberFlicker {
+		0%, 100% { filter: brightness(0.82) contrast(0.92); }
+		50% { filter: brightness(0.78) contrast(0.88); }
 	}
-	.terminal-lockdown-title {
-		font-size: 1.18rem;
-		font-weight: 900;
-		color: #fff;
-		letter-spacing: 0.13em;
-		text-transform: uppercase;
-		margin-bottom: 4px;
-		display: block;
-	}
-	.terminal-lockdown-msg {
-		font-size: 1.01rem;
-		color: #fff;
-		font-weight: 700;
-		letter-spacing: 0.09em;
-	}
-	
-/* } entfernt: Überflüssige Klammer, die einen Syntaxfehler verursacht hat */
-.login-lockdown {
-	background: linear-gradient(90deg, #a10000 80%, #ff2d2d 100%);
-	color: #fff;
-	border: 2px solid #fff;
-	font-size: 1.08rem;
-	font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
-	padding: 16px 18px 14px 18px;
-	margin-bottom: 10px;
-	margin-top: 10px;
-	border-radius: 4px;
-	box-shadow: 0 4px 18px rgba(255,0,0,0.22);
-	letter-spacing: 0.07em;
-	text-align: left;
-	z-index: 3;
-	font-weight: 900;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 8px;
-	animation: blink 1.1s steps(2, start) infinite;
+
+	/* ============================================================
+	   ███  EXTREMER LOCKDOWN-ALARM (ROT / 90s MAINFRAME) ███
+	   ============================================================ */
+
+.terminal-lockdown {
+    background: #2a0000;
+    border: 3px solid #ff3b3b;
+    color: #fff;
+    padding: 26px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1.12rem;
+    text-shadow: 0 0 8px #ff3b3b;
+    animation: lockdownPulse 0.35s steps(2, start) infinite,
+               lockdownShake 0.25s infinite;
+    box-shadow: 0 0 32px #ff0000cc inset, 0 0 48px #ff0000cc;
+    position: relative;
 }
-.login-lockdown-title {
-	font-size: 1.18rem;
-	font-weight: 900;
-	color: #fff;
-	letter-spacing: 0.13em;
-	text-transform: uppercase;
-	margin-bottom: 4px;
-	display: block;
+
+/* ASCII Rahmen */
+.terminal-lockdown::before {
+    content: "┌──────────────────────────────────────────────┐";
+    position: absolute;
+    top: -22px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #ff3b3b;
+    font-weight: 900;
+    text-shadow: 0 0 6px #ff0000;
 }
-.login-lockdown-msg {
-	font-size: 1.01rem;
-	color: #fff;
-	font-weight: 700;
-	letter-spacing: 0.09em;
+
+.terminal-lockdown::after {
+    content: "└──────────────────────────────────────────────┘";
+    position: absolute;
+    bottom: -22px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #ff3b3b;
+    font-weight: 900;
+    text-shadow: 0 0 6px #ff0000;
 }
-.login-warning-head {
-	display: flex;
+
+/* Pulsieren */
+@keyframes lockdownPulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.55; }
+    100% { opacity: 1; }
+}
+
+/* Wackeln */
+@keyframes lockdownShake {
+    0% { transform: translate(0px, 0px); }
+    25% { transform: translate(1px, -1px); }
+    50% { transform: translate(-1px, 1px); }
+    75% { transform: translate(1px, 1px); }
+    100% { transform: translate(0px, 0px); }
+}
+
+
 
 /* Authentisches Regierungs-Terminal Login */
 .gov-terminal {
@@ -1075,10 +1043,7 @@
 	min-height: 24px;
 	font-family: inherit;
 }
-	align-items: center;
-	gap: 12px;
-	margin-bottom: 10px;
-}
+
 .login-warning-icon {
 	font-size: 2.1rem;
 	color: #ff2d2d;
@@ -1357,6 +1322,7 @@
 .prompt-input{background:transparent;border:0;color:inherit;outline:none;font-family:inherit;font-size:15px;flex:1;min-width:6ch;caret-color:#cfeadf}
 
 @keyframes blink{50%{opacity:0}100%{opacity:1}}
+@keyframes legacyFlicker{0%,100%{filter:contrast(0.96) saturate(0.82)} 50%{filter:contrast(0.9) saturate(0.76)}}
 
 .hint{display:none}
 .cmd{color:#cfeadf;font-weight:700}
@@ -1381,9 +1347,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background:
-		radial-gradient(circle at top, rgba(126, 105, 82, 0.18), transparent 30%),
-		linear-gradient(135deg, #2f2925 0%, #1d1915 45%, #171412 100%);
+	background: linear-gradient(180deg, #c3c7cb 0%, #a6a9ad 100%);
 	z-index: 60;
 }
 .login-overlay::before {

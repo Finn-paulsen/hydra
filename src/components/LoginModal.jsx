@@ -85,6 +85,7 @@ export default function LoginModal({ onSuccess }) {
   const userRef = useRef(null)
   const click = useRef(null)
   const beep = useRef(null)
+  const alarmTimerRef = useRef(null)
 
   // User Profile Hook
   const { setLoginUser } = useUserProfile()
@@ -100,7 +101,10 @@ export default function LoginModal({ onSuccess }) {
     // focus with small delay for old machine feel
     setTimeout(() => userRef.current && userRef.current.focus(), 250)
     const t = setInterval(() => setNow(new Date()), 1000)
-    return () => clearInterval(t)
+    return () => {
+      clearInterval(t)
+      if (alarmTimerRef.current) clearInterval(alarmTimerRef.current)
+    }
   }, [])
 
   async function playKey() {
@@ -157,6 +161,10 @@ export default function LoginModal({ onSuccess }) {
     }
 
     if (valid) {
+      if (alarmTimerRef.current) {
+        clearInterval(alarmTimerRef.current)
+        alarmTimerRef.current = null
+      }
       setMessage('Zugriff gewährt. Initialisiere System...')
       beep.current && beep.current(1000, 140)
       writeAudit({ts, user, action: 'login', result: 'success', info: navigator.userAgent})
@@ -184,8 +192,13 @@ export default function LoginModal({ onSuccess }) {
       userRef.current && userRef.current.focus()
       if (newFail >= 3) {
         setLockdown(true)
-        setAlertMsg('ALARM: Mehrfache unbefugte Zugriffsversuche erkannt! Der Vorfall wurde an die Sicherheitszentrale übermittelt. Die Vernichtung von Datenträgern ist strengstens untersagt. Alle Aktivitäten werden forensisch gesichert.')
-        beep.current && beep.current(120, 600)
+        setAlertMsg('ALARM: Mehrfache Zugriffsversuche registriert. Sicherheitszentrale aktiv. Das System meldet einen möglichen Eindringversuch. Alle Protokolle werden gesichert und jede weitere Eingabe wird mit Priorität geprüft.')
+        setMessage('Sicherheitsprotokoll aktiv. Alarmton läuft.')
+        if (alarmTimerRef.current) clearInterval(alarmTimerRef.current)
+        alarmTimerRef.current = setInterval(() => {
+          beep.current && beep.current(180, 180)
+          beep.current && beep.current(260, 140)
+        }, 420)
         toast.error('Sicherheitsalarm: Unbefugter Zugriff gemeldet!', { position: 'top-center', autoClose: 8000, hideProgressBar: false, closeOnClick: true, pauseOnHover: true, draggable: false })
       }
     }
@@ -195,7 +208,7 @@ export default function LoginModal({ onSuccess }) {
     <div className="login-overlay" role="dialog" aria-modal="true">
       <div className="terminal-login-box">
         <div className="terminal-header">
-          <div className="terminal-title">BÜRORECHNER 98</div>
+          <div className="terminal-title">WINDOWS 95</div>
           <div className="terminal-subtitle">Legacy-Zugangssteuerung</div>
           <div className="terminal-meta">
             <span>Session: {sessionId.current}</span> | <span>{format(now, 'dd.MM.yyyy HH:mm:ss')}</span>
@@ -206,6 +219,24 @@ export default function LoginModal({ onSuccess }) {
           <div className="terminal-warning-text">
             Jeder Zugriff wird im Protokoll verzeichnet und durch die Behördenzentrale geprüft.<br />
             Unbefugte Nutzung ist untersagt und wird dokumentiert.
+          </div>
+        </div>
+        <div className="terminal-system-grid" aria-label="Systemdaten">
+          <div className="terminal-info-card">
+            <span className="terminal-info-label">Bereich</span>
+            <strong>Archiv-Intern</strong>
+          </div>
+          <div className="terminal-info-card">
+            <span className="terminal-info-label">Sicherheitsstufe</span>
+            <strong>Stufe III</strong>
+          </div>
+          <div className="terminal-info-card">
+            <span className="terminal-info-label">Terminal-ID</span>
+            <strong>{sessionId.current.slice(0, 8).toUpperCase()}</strong>
+          </div>
+          <div className="terminal-info-card">
+            <span className="terminal-info-label">Status</span>
+            <strong>Legacy-Login / Offline</strong>
           </div>
         </div>
         {!lockdown ? (
