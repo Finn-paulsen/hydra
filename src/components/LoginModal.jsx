@@ -96,15 +96,16 @@ async function detectHardware() {
   // CPU-Kerne
   const cores = navigator.hardwareConcurrency || 1
   // Wir zeigen das als "Prozessor-Einheiten" – reale Zahl
-  const cpuModel = cores <= 2 ? 'Intel 80486DX2-66' : cores <= 4 ? 'Intel Pentium 133 MHz' : 'Intel Pentium II 266 MHz'
-  lines.push({ text: 'CPU: ' + cpuModel + '  [' + cores + ' KERN' + (cores > 1 ? 'E' : '') + ']', delay: 1200 })
+  const cpuModel = cores <= 2 ? 'Intel 486DX2/66  [64-BIT ERWEITERUNG: AKTIV]' : cores <= 4 ? 'Intel Pentium 133 MHz  [64-BIT]' : 'Intel Pentium II 266 MHz  [64-BIT]'
+  lines.push({ text: 'PROZESSOR: ' + cpuModel, delay: 2800 })
+  lines.push({ text: 'PROZESSOR-KERNE: ' + cores + '  MODUS: PROTECTED  BUS: ISA/PCI', delay: 2200 })
 
   // RAM – navigator.deviceMemory (in GB, gerundet)
   const ramGB = navigator.deviceMemory || 0.5
   const ramMB = Math.round(ramGB * 1024)
-  // Zeige als alte Speicherangabe
   const ramDisplay = ramMB >= 1024 ? Math.round(ramMB / 1024) + ' GB' : ramMB + ' MB'
-  lines.push({ text: 'SPEICHER: ' + ramDisplay + '  [KONVENTIONELL: 640K  EMS: AKTIV]', delay: 900 })
+  lines.push({ text: 'SPEICHERTEST: ' + ramDisplay + ' GESAMT...', delay: 3200 })
+  lines.push({ text: 'KONVENTIONELL: 640K  ERWEITERT (EMS): ' + (ramMB - 1) + ' MB  FREI: ' + Math.round(ramMB * 0.87) + ' MB', delay: 2600 })
 
   // Verbindungstyp
   const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection
@@ -114,21 +115,25 @@ async function detectHardware() {
     netType = conn.effectiveType ? conn.effectiveType.toUpperCase() : 'LAN'
     netSpeed = conn.downlink ? Math.round(conn.downlink) + ' Mbit/s' : '---'
   }
-  lines.push({ text: 'NETZWERK: ' + netType + '  BANDBREITE: ' + netSpeed, delay: 1400 })
+  lines.push({ text: 'NETZWERK-ADAPTER: WIRD ERKANNT...', delay: 2800 })
+  lines.push({ text: 'ADAPTER: 3COM ETHERLINK III  IRQ=10  I/O=0x300  DMA=3', delay: 2400 })
+  lines.push({ text: 'VERBINDUNGSTYP: ' + netType + '  GESCHWINDIGKEIT: ' + netSpeed, delay: 1800 })
 
   // Bildschirmauflösung
   const sw = window.screen.width; const sh = window.screen.height
   const cd = window.screen.colorDepth || 8
-  lines.push({ text: 'GRAFIK: ' + sw + 'x' + sh + '  FARBTIEFE: ' + cd + ' BIT', delay: 800 })
+  lines.push({ text: 'GRAFIKKARTE: CIRRUS LOGIC GD5428  VRAM: 1 MB', delay: 2200 })
+  lines.push({ text: 'AUFLÖSUNG: ' + sw + 'x' + sh + '  FARBTIEFE: ' + cd + ' BIT  REFRESH: 60 Hz', delay: 1600 })
 
   // Sprache / Zeitzone
   const lang = navigator.language || 'DE'
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin'
-  lines.push({ text: 'REGION: ' + lang.toUpperCase() + '  ZEITZONE: ' + tz, delay: 700 })
+  lines.push({ text: 'REGION: ' + lang.toUpperCase() + '  ZEITZONE: ' + tz + '  CODEPAGE: 850', delay: 1800 })
 
   // Plattform
   const platform = navigator.platform || 'Win32'
-  lines.push({ text: 'PLATTFORM: ' + platform.toUpperCase(), delay: 600 })
+  lines.push({ text: 'BETRIEBSSYSTEM: ' + platform.toUpperCase() + '  [WINDOWS NT 4.0 SP6a]', delay: 2000 })
+  lines.push({ text: 'SICHERHEITSSTUFE: HOCH  AUDIT: AKTIV  PROTOKOLL: AKTIVIERT', delay: 1600 })
 
   return lines
 }
@@ -136,24 +141,38 @@ async function detectHardware() {
 // ─── Boot-Sequenz Zeilen ──────────────────────────────────────────────────────
 // Statische Zeilen kommen zuerst, dann dynamische Hardware-Erkennung
 const BOOT_LINES_STATIC_PRE = [
-  { text: 'SIEMENS NIXDORF PCD-4H  BIOS v2.07  (C) 1994', delay: 600 },
-  { text: 'SPEICHERTEST LÄUFT...', delay: 2200 },
-  { text: 'BIOS-ERWEITERUNG: SCSI-CONTROLLER  IRQ=11  OK', delay: 700 },
-  { text: 'FESTPLATTE 0:  SEAGATE ST-31200N  1.2 GB  [CHS=2484/16/63]', delay: 1100 },
-  { text: 'FESTPLATTE 1:  NICHT VORHANDEN', delay: 500 },
-  { text: 'CD-ROM:  NEC CDR-260  [ATAPI]  OK', delay: 600 },
-  { text: 'HARDWARE-ERKENNUNG LÄUFT...', delay: 1800 },
+  { text: '', delay: 400 },
+  { text: 'SIEMENS NIXDORF PCD-4H  BIOS v2.07  (C) 1994', delay: 800 },
+  { text: 'COPYRIGHT (C) SIEMENS NIXDORF INFORMATIONSSYSTEME AG, 1987-1994', delay: 1200 },
+  { text: '', delay: 600 },
+  { text: 'BIOS-DATUM: 14.03.1994  SERIENNUMMER: SN-4H-0038471', delay: 1800 },
+  { text: '', delay: 400 },
+  { text: 'SPEICHERTEST LÄUFT', delay: 3600 },
+  { text: 'BIOS-ERWEITERUNG: SCSI-CONTROLLER  IRQ=11  I/O=0x330  OK', delay: 2400 },
+  { text: 'BIOS-ERWEITERUNG: VGA-BIOS  CIRRUS LOGIC  v1.62  OK', delay: 1800 },
+  { text: '', delay: 500 },
+  { text: 'FESTPLATTEN-CONTROLLER: IDE  IRQ=14  I/O=0x1F0', delay: 2200 },
+  { text: 'FESTPLATTE 0:  SEAGATE ST-31200N  1.2 GB  [CHS=2484/16/63]  OK', delay: 3400 },
+  { text: 'FESTPLATTE 1:  NICHT VORHANDEN', delay: 1200 },
+  { text: 'CD-ROM-LAUFWERK:  NEC CDR-260  [ATAPI]  OK', delay: 1800 },
+  { text: '', delay: 400 },
+  { text: 'HARDWARE-ERKENNUNG LÄUFT...', delay: 2400 },
 ]
 
 const BOOT_LINES_STATIC_POST = [
-  { text: 'NETZWERKADAPTER:  3COM ETHERLINK III  IRQ=10  I/O=0x300', delay: 1600 },
-  { text: 'PROTOKOLL-STACK:  TCP/IP v3.11  GELADEN', delay: 900 },
-  { text: 'SICHERHEITSMODUL:  REV.7  INITIALISIERT', delay: 1100 },
-  { text: 'VERSCHLÜSSELUNG:  DES-56  AKTIV', delay: 700 },
-  { text: '──────────────────────────────────────────────────────', delay: 400 },
-  { text: 'VERBINDUNGSAUFBAU ZUM ZENTRALRECHNER...', delay: 2400 },
-  { text: 'AUTHENTIFIZIERUNGSSERVER:  192.168.1.1  [ANTWORT: 847ms]', delay: 1800 },
-  { text: 'SITZUNGSPROTOKOLL AKTIV  –  ALLE ZUGRIFFE WERDEN ERFASST', delay: 600 },
+  { text: 'NETZWERKADAPTER: 3COM ETHERLINK III  IRQ=10  I/O=0x300  DMA=3', delay: 2800 },
+  { text: 'MAC-ADRESSE: WIRD GELESEN...', delay: 2200 },
+  { text: 'PROTOKOLL-STACK: TCP/IP v3.11  IPX/SPX v2.0  NETBIOS  GELADEN', delay: 2600 },
+  { text: 'SICHERHEITSMODUL: REV.7  SIGNATURPRÜFUNG...', delay: 3200 },
+  { text: 'SICHERHEITSMODUL: SIGNATUR OK  INITIALISIERT', delay: 2000 },
+  { text: 'VERSCHLÜSSELUNG: DES-56  SCHLÜSSELAUSTAUSCH...', delay: 2800 },
+  { text: 'VERSCHLÜSSELUNG: AKTIV  SITZUNGSSCHLÜSSEL GENERIERT', delay: 2200 },
+  { text: '──────────────────────────────────────────────────────', delay: 800 },
+  { text: 'VERBINDUNGSAUFBAU ZUM ZENTRALRECHNER...', delay: 3600 },
+  { text: 'ROUTE: 192.168.1.1  HOP: 1  LATENZ: 847ms', delay: 2800 },
+  { text: 'AUTHENTIFIZIERUNGSSERVER: 192.168.1.1  ANTWORTET', delay: 2400 },
+  { text: 'SITZUNGSPROTOKOLL AKTIV  –  ALLE ZUGRIFFE WERDEN ERFASST', delay: 1800 },
+  { text: '──────────────────────────────────────────────────────', delay: 600 },
 ]
 
 // ─── Verbindungsfehler ────────────────────────────────────────────────────────
@@ -165,7 +184,7 @@ const CONNECTION_ERRORS = [
   { code: 'ERR_CHECKSUM',        msg: 'PRÜFSUMMEN-FEHLER IM DATENPAKET – ÜBERTRAGUNG UNTERBROCHEN' },
   { code: 'ERR_NODE_DOWN',       msg: 'NETZWERKKNOTEN NICHT VERFÜGBAR [LETZTE MELDUNG: 12.06.2003]' },
   { code: 'ERR_AUTH_SRV',        msg: 'AUTHENTIFIZIERUNGSSERVER ANTWORTET NICHT' },
-  { code: 'ERR_LEGACY_HANDSHAKE',msg: 'VERALTETES HANDSHAKE-PROTOKOLL – UPGRADE ERFORDERLICH' },
+  { code: 'ERR_LEGACY_HANDSHAKE',msg: 'VERALTETES HANDSHAKE-PROTOKOLL – UPDATE ERFORDERLICH' },
   { code: 'ERR_BUFFER_OVERFLOW', msg: 'PUFFERÜBERLAUF IN SICHERHEITSMODUL REV.7' },
   { code: 'ERR_CLOCK_SKEW',      msg: 'SYSTEMZEIT-ABWEICHUNG ZU GROSS – KERBEROS FEHLGESCHLAGEN' },
   { code: 'ERR_SESS_LIMIT',      msg: 'MAXIMALE SITZUNGSANZAHL ERREICHT – BITTE SPÄTER VERSUCHEN' },
@@ -191,20 +210,22 @@ const ALARM_MESSAGES = [
   'ZUSTÄNDIGE STELLE WIRD BENACHRICHTIGT',
 ]
 
-// ─── Fake CMD-Fenster – realistisch, Windows NT / DOS-Stil ────────────────────
-// Werden dynamisch mit echten Werten befüllt
-function buildCmdWindows(sessionId) {
+// ─── Alarm-Sequenz: Linke Meldungen + synchrone CMD-Befehle ─────────────────
+// Jede Phase hat eine linke Meldung und passende CMD-Ausgabe rechts
+function buildAlarmSequence(sessionId) {
   const ip = '192.168.' + (Math.floor(Math.random() * 5) + 1) + '.' + (Math.floor(Math.random() * 200) + 10)
   const mac = Array.from({length: 6}, () => Math.floor(Math.random()*256).toString(16).padStart(2,'0').toUpperCase()).join('-')
   const ts = new Date()
   const dateStr = ts.toLocaleDateString('de-DE')
   const timeStr = ts.toLocaleTimeString('de-DE')
   const termId = sessionId.slice(0,8).toUpperCase()
+  const gateway = '192.168.1.1'
 
   return [
     {
-      title: 'C:\\WINNT\\SYSTEM32\\CMD.EXE',
-      lines: [
+      leftMsg: 'VERBINDUNGSDATEN WERDEN PROTOKOLLIERT',
+      cmdTitle: 'C:\\WINNT\\SYSTEM32\\CMD.EXE',
+      cmdLines: [
         'Microsoft Windows NT [Version 4.0.1381]',
         '(C) Copyright 1985-1996 Microsoft Corp.',
         '',
@@ -212,50 +233,22 @@ function buildCmdWindows(sessionId) {
         '',
         'Aktive Verbindungen',
         '',
-        '  Proto  Lokale Adresse       Remoteadresse        Status',
-        '  TCP    0.0.0.0:135          0.0.0.0:0            ABHÖREN',
-        '  TCP    0.0.0.0:139          0.0.0.0:0            ABHÖREN',
-        '  TCP    0.0.0.0:445          0.0.0.0:0            ABHÖREN',
-        '  TCP    ' + ip + ':1024   192.168.1.1:443      HERGESTELLT',
-        '  TCP    ' + ip + ':1025   192.168.1.1:139      HERGESTELLT',
-        '  UDP    0.0.0.0:137          *:*',
+        '  Proto  Lok. Adresse          Rem. Adresse         Status',
+        '  TCP    0.0.0.0:135           0.0.0.0:0            ABHÖREN',
+        '  TCP    0.0.0.0:139           0.0.0.0:0            ABHÖREN',
+        '  TCP    0.0.0.0:445           0.0.0.0:0            ABHÖREN',
+        '  TCP    ' + ip + ':1024  ' + gateway + ':443      HERGESTELLT',
+        '  TCP    ' + ip + ':1025  ' + gateway + ':139      HERGESTELLT',
+        '  UDP    0.0.0.0:137           *:*',
+        '  UDP    0.0.0.0:138           *:*',
         '',
         'C:\\> _',
       ]
     },
     {
-      title: 'Ereignisanzeige – Sicherheitsprotokoll',
-      lines: [
-        '─────────────────────────────────────────',
-        'Ereignisanzeige',
-        'Protokoll: Sicherheit',
-        '─────────────────────────────────────────',
-        '',
-        'Ereignis-ID:  529',
-        'Typ:          Fehlerüberwachung',
-        'Datum:        ' + dateStr,
-        'Uhrzeit:      ' + timeStr,
-        'Benutzer:     NT AUTHORITY\\SYSTEM',
-        'Computer:     TERMINAL-' + termId,
-        '',
-        'Beschreibung:',
-        'Anmeldefehler:',
-        'Grund:         Unbekannter Benutzername',
-        '               oder falsches Kennwort.',
-        'Anmeldetyp:    3',
-        'Prozess:       NtLmSsp',
-        'Paket:         NTLM',
-        '',
-        'Ereignis-ID:  539',
-        'Typ:          Fehlerüberwachung',
-        'Beschreibung: Konto gesperrt.',
-        '',
-        '─────────────────────────────────────────',
-      ]
-    },
-    {
-      title: 'C:\\WINNT\\SYSTEM32\\CMD.EXE',
-      lines: [
+      leftMsg: 'LEITUNGSKENNUNG WIRD ERMITTELT',
+      cmdTitle: 'C:\\WINNT\\SYSTEM32\\CMD.EXE',
+      cmdLines: [
         'C:\\> ipconfig /all',
         '',
         'Windows NT IP-Konfiguration',
@@ -273,33 +266,85 @@ function buildCmdWindows(sessionId) {
         '   DHCP aktiviert . . : Nein',
         '   IP-Adresse . . . . : ' + ip,
         '   Subnetzmaske . . . : 255.255.255.0',
-        '   Standardgateway  . : 192.168.1.1',
-        '   DNS-Server . . . . : 192.168.1.1',
+        '   Standardgateway  . : ' + gateway,
+        '   DNS-Server . . . . : ' + gateway,
         '',
         'C:\\> _',
       ]
     },
     {
-      title: 'C:\\WINNT\\SYSTEM32\\CMD.EXE',
-      lines: [
-        'C:\\> net session',
+      leftMsg: 'DATENTRÄGER WIRD GESICHERT',
+      cmdTitle: 'Ereignisanzeige – Sicherheitsprotokoll',
+      cmdLines: [
+        'Ereignisanzeige  [TERMINAL-' + termId + ']',
+        'Protokoll: Sicherheit',
+        '─────────────────────────────────────────',
         '',
-        'Computer         Benutzer         Clienttyp',
-        '─────────────────────────────────────────────',
-        '\\\\' + ip + '  UNBEKANNT        Windows NT 4.0',
+        'Ereignis-ID : 529  [Anmeldefehler]',
+        'Typ         : Fehlerüberwachung',
+        'Datum       : ' + dateStr,
+        'Uhrzeit     : ' + timeStr,
+        'Benutzer    : NT AUTHORITY\\SYSTEM',
+        'Computer    : TERMINAL-' + termId,
+        '',
+        'Beschreibung:',
+        '  Anmeldefehler – Unbekannter Benutzername',
+        '  oder falsches Kennwort.',
+        '  Anmeldetyp  : 3 (Netzwerk)',
+        '  Prozess     : NtLmSsp',
+        '  Paket       : NTLM',
+        '',
+        'Ereignis-ID : 539  [Konto gesperrt]',
+        '  Kontosperrungsschwelle überschritten.',
+        '  Konto gesperrt für: 1440 Minuten.',
+        '',
+        '─────────────────────────────────────────',
+      ]
+    },
+    {
+      leftMsg: 'ZUSTÄNDIGE STELLE WIRD INFORMIERT',
+      cmdTitle: 'C:\\WINNT\\SYSTEM32\\CMD.EXE',
+      cmdLines: [
+        'C:\\> net send ' + gateway + ' SICHERHEITSVORFALL',
+        '',
+        'Nachricht wurde an ' + gateway + ' gesendet.',
+        '',
+        'C:\\> net user UNBEKANNT /domain',
+        '',
+        'Benutzername              UNBEKANNT',
+        'Vollständiger Name',
+        'Kommentar',
+        'Letzter Anmeldeversuch    ' + dateStr + '  ' + timeStr,
+        'Anmeldefehler             3',
+        'Konto aktiv               Nein',
+        'Konto gesperrt            Ja',
         '',
         'Befehl wurde erfolgreich ausgeführt.',
         '',
-        'C:\\> net accounts',
+        'C:\\> _',
+      ]
+    },
+    {
+      leftMsg: 'SITZUNGSPROTOKOLL WIRD ARCHIVIERT',
+      cmdTitle: 'C:\\WINNT\\SYSTEM32\\CMD.EXE',
+      cmdLines: [
+        'C:\\> tracert ' + gateway,
         '',
-        'Erzwinge Abmeldung nach Ablaufzeit: Nein',
-        'Minimales Kennwortalter (Tage):     0',
-        'Maximales Kennwortalter (Tage):     42',
-        'Minimale Kennwortlänge:             6',
-        'Kennwortverlauf:                    5',
-        'Kontosperrungsschwelle:             3',
-        'Kontosperrungsdauer (Min.):         1440',
-        'Beobachtungsfenster (Min.):         30',
+        'Routenverfolgung zu ' + gateway,
+        'über maximal 30 Hops:',
+        '',
+        '  1    <1 ms    <1 ms    <1 ms  ' + gateway,
+        '  2     2 ms     1 ms     2 ms  10.0.0.1',
+        '  3    14 ms    13 ms    14 ms  172.16.0.1',
+        '  4    21 ms    20 ms    21 ms  Ziel erreicht.',
+        '',
+        'Ablaufverfolgung beendet.',
+        '',
+        'C:\\> auditpol /get /category:*',
+        '',
+        '  Anmeldevorgänge      : Erfolg und Fehler',
+        '  Objektzugriff        : Fehler',
+        '  Kontoverwaltung      : Erfolg und Fehler',
         '',
         'C:\\> _',
       ]
@@ -370,10 +415,11 @@ export default function LoginModal({ onSuccess }) {
   const [bootLines, setBootLines]     = useState([])
   const [now, setNow]                 = useState(new Date())
   const [glitch, setGlitch]           = useState(false)
-  const [alarmText, setAlarmText]     = useState('')
-  const [cmdWindows, setCmdWindows]   = useState([])
-  const [activeCmdWindow, setActiveCmdWindow] = useState(0)
   const [alarmPhase, setAlarmPhase]   = useState(0)
+  const [alarmLeftMsgs, setAlarmLeftMsgs] = useState([])
+  const [alarmCmdTitle, setAlarmCmdTitle] = useState('C:\\WINNT\\SYSTEM32\\CMD.EXE')
+  const [alarmCmdLines, setAlarmCmdLines] = useState([])
+  const [alarmSequence, setAlarmSequence] = useState([])
   const [randomFailMsg, setRandomFailMsg] = useState(null)
   const [policyPhase, setPolicyPhase] = useState(-1)
   const [policyLines, setPolicyLines] = useState([])
@@ -507,27 +553,32 @@ export default function LoginModal({ onSuccess }) {
     playAlarmCycle()
     alarmIntRef.current = setInterval(playAlarmCycle, 1200)
 
-    let idx = 0
-    setAlarmText(ALARM_MESSAGES[0])
-    alarmTxtIntRef.current = setInterval(() => {
-      idx = (idx + 1) % ALARM_MESSAGES.length
-      setAlarmText(ALARM_MESSAGES[idx])
-    }, 2200)
+    const seq = buildAlarmSequence(sessionId.current)
+    setAlarmSequence(seq)
 
-    // CMD-Fenster nach 1.5s öffnen
-    setTimeout(() => {
-      const wins = buildCmdWindows(sessionId.current)
-      setCmdWindows(wins)
-      setActiveCmdWindow(0)
+    // Sequenz: alle 7s nächste Phase, linke Meldung + CMD-Fenster synchron
+    let seqIdx = 0
+    function advanceAlarmSeq() {
+      if (seqIdx >= seq.length) return
+      const phase = seq[seqIdx]
+      // Linke Meldung hinzufügen
+      setAlarmLeftMsgs(prev => [...prev, phase.leftMsg])
+      // CMD-Fenster wechseln
+      setAlarmCmdTitle(phase.cmdTitle)
+      setAlarmCmdLines([])
       setAlarmPhase(2)
-
-      // CMD-Fenster wechseln alle 8 Sekunden
-      let cidx = 0
-      cmdSwitchIntRef.current = setInterval(() => {
-        cidx = (cidx + 1) % wins.length
-        setActiveCmdWindow(cidx)
-      }, 8000)
-    }, 1500)
+      // CMD-Zeilen schrittweise eintippen (alle 180ms eine Zeile)
+      phase.cmdLines.forEach((line, i) => {
+        setTimeout(() => {
+          setAlarmCmdLines(prev => [...prev, line])
+        }, i * 180)
+      })
+      seqIdx++
+      if (seqIdx < seq.length) {
+        cmdSwitchIntRef.current = setTimeout(advanceAlarmSeq, 7000)
+      }
+    }
+    setTimeout(advanceAlarmSeq, 1200)
   }
 
   // ─── Login Handler ────────────────────────────────────────────────────────────
@@ -553,13 +604,13 @@ export default function LoginModal({ onSuccess }) {
       await simulateDelay(1200 + Math.random() * 800)
     }
 
-    setMessage('AUTHENTIFIZIERUNG...')
-    for (let i = 0; i < 5; i++) {
-      await simulateDelay(300 + Math.random() * 250)
+    setMessage('AUTHENTIFIZIERUNG LÄUFT')
+    for (let i = 0; i < 14; i++) {
+      await simulateDelay(280 + Math.random() * 320)
       setMessage(prev => prev + '.')
       playTone(460, 35, 'square', 0.018)
     }
-    await simulateDelay(400 + Math.random() * 500)
+    await simulateDelay(600 + Math.random() * 800)
 
     const ts = new Date().toISOString()
     const valid = isValidCredential(user, pass)
@@ -651,7 +702,6 @@ export default function LoginModal({ onSuccess }) {
 
   // ─── ALARM / LOCKDOWN SCREEN ───────────────────────────────────────────────────
   if (lockdown) {
-    const activeCmdData = cmdWindows[activeCmdWindow] || { title: 'C:\\WINNT\\SYSTEM32\\CMD.EXE', lines: ['Wird geladen...'] }
     return (
       <div className={'retro-screen retro-alarm-screen' + (alarmPhase >= 2 ? ' alarm-phase2' : '')}>
         <div className="crt-overlay" />
@@ -663,7 +713,7 @@ export default function LoginModal({ onSuccess }) {
         </div>
 
         <div className="alarm-body">
-          {/* Linke Spalte: Status */}
+          {/* Linke Spalte: Status + synchronisierte Meldungen */}
           <div className="alarm-left-col">
             <div className="alarm-status-box">
               <div className="alarm-status-row alarm-blink-slow">
@@ -687,31 +737,37 @@ export default function LoginModal({ onSuccess }) {
                 <span className="alarm-val">3 / 3  –  GESPERRT</span>
               </div>
               <div className="alarm-status-divider">{'─'.repeat(30)}</div>
-              <div className="alarm-rotating-msg alarm-blink-slow">&gt; {alarmText}</div>
-              <div className="alarm-status-divider">{'─'.repeat(30)}</div>
               <div className="alarm-warn-list">
-                <div className="alarm-warn-item">DATENTRÄGER WIRD GESICHERT</div>
-                <div className="alarm-warn-item alarm-blink-slow">VERBINDUNGSDATEN WERDEN PROTOKOLLIERT</div>
-                <div className="alarm-warn-item">ZUSTÄNDIGE STELLE WIRD INFORMIERT</div>
-                <div className="alarm-warn-item alarm-blink-slow">LEITUNGSKENNUNG WIRD ERMITTELT</div>
-                <div className="alarm-warn-item">SITZUNGSPROTOKOLL WIRD ARCHIVIERT</div>
+                {alarmLeftMsgs.map((msg, i) => (
+                  <div key={i} className={'alarm-warn-item' + (i === alarmLeftMsgs.length - 1 ? ' alarm-warn-active' : '')}>
+                    &gt; {msg}
+                  </div>
+                ))}
+                {alarmLeftMsgs.length === 0 && (
+                  <div className="alarm-warn-item alarm-blink-slow">&gt; PROTOKOLL WIRD INITIALISIERT...</div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Rechte Spalte: CMD-Fenster */}
-          {alarmPhase >= 2 && cmdWindows.length > 0 && (
+          {/* Rechte Spalte: CMD-Fenster – synchron mit linker Seite */}
+          {alarmPhase >= 2 && (
             <div className="alarm-cmd-col">
               <div className="alarm-cmd-window">
                 <div className="alarm-cmd-titlebar">
-                  <span className="alarm-cmd-titlebar-btn">■</span>
-                  <span className="alarm-cmd-titlebar-text">{activeCmdData.title}</span>
-                  <span className="alarm-cmd-titlebar-btn">□</span>
-                  <span className="alarm-cmd-titlebar-btn">×</span>
+                  <div className="alarm-cmd-titlebar-left">
+                    <span className="alarm-cmd-titlebar-icon">■</span>
+                  </div>
+                  <span className="alarm-cmd-titlebar-text">{alarmCmdTitle}</span>
+                  <div className="alarm-cmd-titlebar-right">
+                    <span className="alarm-cmd-titlebar-btn">—</span>
+                    <span className="alarm-cmd-titlebar-btn">□</span>
+                    <span className="alarm-cmd-titlebar-btn alarm-cmd-close">×</span>
+                  </div>
                 </div>
                 <div className="alarm-cmd-body">
-                  {activeCmdData.lines.map((line, i) => (
-                    <div key={i} className="alarm-cmd-line">{line || '\u00a0'}</div>
+                  {alarmCmdLines.map((line, i) => (
+                    <div key={i} className="alarm-cmd-line">{line === '' ? ' ' : line}</div>
                   ))}
                   <span className="alarm-cmd-cursor">_</span>
                 </div>
