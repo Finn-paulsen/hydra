@@ -1,7 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   BUNDESARCHIV-TERMINAL  –  ZUGANGSSTEUERUNG
-   Siemens Nixdorf PCD-4H  •  1987  •  Letzte Änderung: unbekannt
-   Farbschema: Amber-Phosphor auf Dunkelgrau  (kein Hacker-Grün)
+   Sicherheitsterminal v4.1  –  Siemens Nixdorf PCD-4H  •  1994
+   Letzte Änderung: unbekannt
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
@@ -171,7 +170,28 @@
 }
 .retro-login-panel::-webkit-scrollbar { display: none; }
 
-/* ─── ASCII-Kopfzeile ────────────────────────────────────────────────────────*/
+/* ─── Header-Block (kein Logo) ──────────────────────────────────────────────*/
+.retro-header-block {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.retro-header-title {
+  font-size: 17px;
+  letter-spacing: 0.18em;
+  color: var(--amber-bright);
+  text-shadow: 0 0 8px var(--amber), 0 0 3px var(--amber-dim);
+}
+
+.retro-header-sub {
+  font-size: 11px;
+  color: var(--amber-dim);
+  letter-spacing: 0.08em;
+  margin-top: 3px;
+  opacity: 0.7;
+}
+
+/* ─── ASCII-Kopfzeile (Legacy) ───────────────────────────────────────────────*/
 .retro-ascii-header {
   text-align: center;
   margin-bottom: 6px;
@@ -704,7 +724,21 @@
   font-size: 11px;
   color: var(--alarm-red);
   letter-spacing: 0.03em;
-  line-height: 1.5;
+  line-height: 1.8;
+  padding-left: 4px;
+}
+
+.alarm-warn-item::before {
+  content: '> ';
+  color: var(--alarm-red-dim);
+}
+
+/* ─── CMD-Cursor ──────────────────────────────────────────────────────────────*/
+.alarm-cmd-cursor {
+  display: inline-block;
+  animation: cursorBlink 0.85s step-end infinite;
+  color: var(--cmd-text);
+  text-shadow: none !important;
 }
 
 /* ─── Image-Build Box ────────────────────────────────────────────────────────*/

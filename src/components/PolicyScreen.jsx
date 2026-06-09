@@ -34,7 +34,7 @@ const ALL_STEPS = [
   // Phase 1
   { phase: 1, phaseTitle: 'SYSTEMKONFIGURATION', line: 'Drucker werden konfiguriert...' },
   { phase: 1, phaseTitle: 'SYSTEMKONFIGURATION', line: 'Softwareverteilung wird geprüft...' },
-  { phase: 1, phaseTitle: 'SYSTEMKONFIGURATION', line: '  [BUNDESARCHIV-CLIENT v4.1] – AKTUELL' },
+  { phase: 1, phaseTitle: 'SYSTEMKONFIGURATION', line: '  [NETZWERKCLIENT v4.1]      – AKTUELL' },
   { phase: 1, phaseTitle: 'SYSTEMKONFIGURATION', line: '  [SICHERHEITSMODUL REV.7]  – AKTUELL' },
   { phase: 1, phaseTitle: 'SYSTEMKONFIGURATION', line: '  [NETZWERKTREIBER IPX/SPX]  – AKTUELL' },
   { phase: 1, phaseTitle: 'SYSTEMKONFIGURATION', line: 'Zertifikatsspeicher wird aktualisiert...' },
@@ -43,17 +43,17 @@ const ALL_STEPS = [
   { phase: 2, phaseTitle: 'PROFIL WIRD GELADEN', line: 'Startmenü wird konfiguriert...' },
   { phase: 2, phaseTitle: 'PROFIL WIRD GELADEN', line: 'Desktop-Einstellungen werden übernommen...' },
   { phase: 2, phaseTitle: 'PROFIL WIRD GELADEN', line: 'Zugriffsrechte werden geprüft...' },
-  { phase: 2, phaseTitle: 'PROFIL WIRD GELADEN', line: '  ARCHIV-ZUGRIFF:    STUFE II – GEWÄHRT' },
+  { phase: 2, phaseTitle: 'PROFIL WIRD GELADEN', line: '  DATEI-ZUGRIFF:     STUFE II – GEWÄHRT' },
   { phase: 2, phaseTitle: 'PROFIL WIRD GELADEN', line: '  NETZWERK-ZUGRIFF:  EINGESCHRÄNKT' },
   { phase: 2, phaseTitle: 'PROFIL WIRD GELADEN', line: '  DRUCKER-ZUGRIFF:   LOKAL ONLY' },
   // Phase 3
   { phase: 3, phaseTitle: 'SITZUNG WIRD INITIALISIERT', line: 'Sitzungs-ID wird registriert...' },
   { phase: 3, phaseTitle: 'SITZUNG WIRD INITIALISIERT', line: 'Audit-Protokoll wird gestartet...' },
-  { phase: 3, phaseTitle: 'SITZUNG WIRD INITIALISIERT', line: 'Verbindung zu Bundesrechenzentrum...' },
-  { phase: 3, phaseTitle: 'SITZUNG WIRD INITIALISIERT', line: '  STATUS: HERGESTELLT  [192.168.47.1]' },
+  { phase: 3, phaseTitle: 'SITZUNG WIRD INITIALISIERT', line: 'Verbindung zum Zentralrechner...' },
+  { phase: 3, phaseTitle: 'SITZUNG WIRD INITIALISIERT', line: '  STATUS: HERGESTELLT  [192.168.1.1]' },
   { phase: 3, phaseTitle: 'SITZUNG WIRD INITIALISIERT', line: '' },
   { phase: 3, phaseTitle: 'SITZUNG WIRD INITIALISIERT', line: 'Anmeldung erfolgreich.' },
-  { phase: 3, phaseTitle: 'SITZUNG WIRD INITIALISIERT', line: 'Willkommen im BUNDESARCHIV-SYSTEM.' },
+  { phase: 3, phaseTitle: 'SITZUNG WIRD INITIALISIERT', line: 'Sitzung wird geöffnet...' },
 ]
 const STEP_DELAY = 550 // ms zwischen jeder Zeile
 const TOTAL_PHASES = 4
@@ -120,7 +120,7 @@ class PolicyScreen extends React.Component {
         <div className="policy-container">
           <div className="policy-logo-row">
             <span className="policy-logo-char">■</span>
-            <span className="policy-logo-text">BUNDESARCHIV-SYSTEM</span>
+            <span className="policy-logo-text">SYSTEMKONFIGURATION</span>
             <span className="policy-logo-char">■</span>
           </div>
           <div className="policy-step-box">
