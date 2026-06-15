@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # npm dependencies (Frontend / Dashboard / Web Interface)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Python dependencies (falls Hydra Python-Module nutzt)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Keep GitHub Actions up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
