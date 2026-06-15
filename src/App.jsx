@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 
 import FensterManager from './components/FensterManager';
 import LoginModal from './components/LoginModal';
+import PolicyScreen from './components/PolicyScreen';
 import DeepDesktop from './components/DeepDesktop';
 
 export default function App() {
-  // Login und Schicht-State
-  const [loginComplete, setLoginComplete] = useState(false);
+  // Phasen: 'login' | 'policy' | 'desktop'
+  const [phase, setPhase] = useState('login');
   const [deepMode, setDeepMode] = useState(false);
 
   function handleLogout() {
-    setLoginComplete(false);
+    setPhase('login');
     setDeepMode(false);
   }
 
@@ -22,17 +23,22 @@ export default function App() {
   return (
     <div className="app-container">
       {/* Login-Dialog */}
-      {!loginComplete && (
-        <LoginModal onSuccess={() => setLoginComplete(true)} />
+      {phase === 'login' && (
+        <LoginModal onSuccess={() => setPhase('policy')} />
+      )}
+
+      {/* Group-Policy-Screen – eigenständige Komponente */}
+      {phase === 'policy' && (
+        <PolicyScreen onDone={() => setPhase('desktop')} />
       )}
 
       {/* Geheimer Desktop */}
-      {loginComplete && deepMode && (
+      {phase === 'desktop' && deepMode && (
         <DeepDesktop onLogout={() => setDeepMode(false)} />
       )}
 
       {/* Normaler Desktop */}
-      {loginComplete && !deepMode && (
+      {phase === 'desktop' && !deepMode && (
         <FensterManager bootComplete={true} onLogout={handleLogout} onDeepAccess={handleDeepAccess} />
       )}
     </div>

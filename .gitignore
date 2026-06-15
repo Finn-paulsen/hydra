@@ -3,6 +3,9 @@ node_modules/
 .pnp
 .pnp.js
 
+# Temporary packaging artifacts
+.tmp-pack/
+
 # Testing
 coverage/
 
@@ -33,4 +36,3 @@ pnpm-debug.log*
 
 # OS
 Thumbs.db
-node_modules

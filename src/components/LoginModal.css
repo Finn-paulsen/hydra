@@ -1,0 +1,1005 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Sicherheitsterminal v4.1  –  Siemens Nixdorf PCD-4H  •  1994
+   Letzte Änderung: unbekannt
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+
+/* ─── Farbvariablen ──────────────────────────────────────────────────────────
+   Amber-Phosphor: warmes Orange-Gelb, wie alte Bernstein-Monitore
+   Kein Grün. Kein Neon. Staubig, eingestaubt, jahrzehntealt.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Amber-Phosphor Hauptfarben */
+  --amber:        #c8820a;
+  --amber-bright: #e8a020;
+  --amber-dim:    #7a4e06;
+  --amber-glow:   rgba(200, 130, 10, 0.14);
+  --amber-faint:  rgba(200, 130, 10, 0.06);
+
+  /* Hintergrund – sehr dunkles Graubraun, nicht reines Schwarz */
+  --bg-dark:      #0d0b08;
+  --bg-panel:     #111008;
+  --bg-scanline:  rgba(0, 0, 0, 0.22);
+
+  /* Alarm-Farben – gedämpftes Rot, nicht grell */
+  --alarm-red:    #cc2200;
+  --alarm-red-dim:#6b1100;
+  --alarm-red-bg: #0c0200;
+  --alarm-amber:  #b86010;
+
+  /* CMD-Fenster – Windows NT Look */
+  --cmd-bg:       #0a0a0a;
+  --cmd-border:   #888888;
+  --cmd-title:    #000080;
+  --cmd-title-fg: #ffffff;
+  --cmd-text:     #c0c0c0;
+
+  /* Policy-Screen – neutrales Grau */
+  --policy-bg:    #0a0800;
+  --policy-fg:    #c8922a;
+  --policy-bar:   #c8922a;
+
+  --font-mono: 'VT323', 'Share Tech Mono', 'Courier New', monospace;
+}
+
+/* ─── Vollbild CRT-Basis ─────────────────────────────────────────────────────
+   Leicht gewölbter Bildschirm, Vignette, kein scharfer Rand
+   ─────────────────────────────────────────────────────────────────────────── */
+.retro-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-dark);
+  font-family: var(--font-mono);
+  color: var(--amber);
+  font-size: 16px;
+  line-height: 1.4;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* CRT-Wölbung und Vignette */
+  box-shadow:
+    inset 0 0 140px rgba(0, 0, 0, 0.90),
+    inset 0 0 50px  rgba(0, 0, 0, 0.70);
+  border-radius: 3px;
+  z-index: 9999;
+}
+
+/* ─── CRT-Scanlines + Rauschen ───────────────────────────────────────────────
+   Horizontale Scanlinien, leicht flimmernd
+   ─────────────────────────────────────────────────────────────────────────── */
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    var(--bg-scanline) 2px,
+    var(--bg-scanline) 4px
+  );
+  mask-image: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+  animation: crtNoise 0.1s steps(1) infinite;
+}
+
+@keyframes crtNoise {
+  0%   { opacity: 0.88; transform: translateY(0px); }
+  33%  { opacity: 0.82; transform: translateY(-0.4px); }
+  66%  { opacity: 0.90; transform: translateY(0.4px); }
+  100% { opacity: 0.88; transform: translateY(0px); }
+}
+
+/* ─── Amber-Phosphor Textglühen ──────────────────────────────────────────────
+   Warmes, mattes Leuchten – kein grelles Neon
+   ─────────────────────────────────────────────────────────────────────────── */
+.retro-screen * {
+  text-shadow: 0 0 5px var(--amber-glow), 0 0 2px var(--amber-dim);
+}
+
+/* ─── Glitch-Effekt ──────────────────────────────────────────────────────────
+   Selten, kurz, subtil
+   ─────────────────────────────────────────────────────────────────────────── */
+.retro-glitch {
+  animation: glitchFrame 0.08s steps(2) forwards;
+}
+
+@keyframes glitchFrame {
+  0%   { transform: translate(0, 0)    skewX(0deg);    filter: brightness(1); }
+  25%  { transform: translate(-2px, 1px) skewX(0.8deg); filter: brightness(1.3); }
+  50%  { transform: translate(2px, -1px) skewX(-0.5deg); filter: brightness(0.85); }
+  75%  { transform: translate(-1px, 0) skewX(0.3deg);  filter: brightness(1.1); }
+  100% { transform: translate(0, 0)    skewX(0deg);    filter: brightness(1); }
+}
+
+/* ─── Statusleiste oben ──────────────────────────────────────────────────────
+   Invertiert: dunkler Text auf Amber-Hintergrund
+   ─────────────────────────────────────────────────────────────────────────── */
+.retro-statusbar {
+  width: 100%;
+  padding: 3px 10px;
+  background: var(--amber-dim);
+  color: var(--bg-dark);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  text-shadow: none;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--amber-dim);
+}
+
+.retro-clock {
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+/* ─── Untere Leiste ──────────────────────────────────────────────────────────*/
+.retro-bottombar {
+  width: 100%;
+  padding: 3px 10px;
+  background: var(--amber-dim);
+  color: var(--bg-dark);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  display: flex;
+  justify-content: space-around;
+  text-shadow: none;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  margin-top: auto;
+  border-top: 1px solid var(--amber-dim);
+}
+
+/* ─── Scrollbares Login-Panel ────────────────────────────────────────────────*/
+.retro-login-panel {
+  flex: 1;
+  width: 100%;
+  max-width: 520px;
+  padding: 10px 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  scrollbar-width: none;
+}
+.retro-login-panel::-webkit-scrollbar { display: none; }
+
+/* ─── Header-Block (kein Logo) ──────────────────────────────────────────────*/
+.retro-header-block {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.retro-header-title {
+  font-size: 17px;
+  letter-spacing: 0.18em;
+  color: var(--amber-bright);
+  text-shadow: 0 0 8px var(--amber), 0 0 3px var(--amber-dim);
+}
+
+.retro-header-sub {
+  font-size: 11px;
+  color: var(--amber-dim);
+  letter-spacing: 0.08em;
+  margin-top: 3px;
+  opacity: 0.7;
+}
+
+/* ─── ASCII-Kopfzeile (Legacy) ───────────────────────────────────────────────*/
+.retro-ascii-header {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.retro-ascii-art {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--amber-bright);
+  text-shadow: 0 0 8px var(--amber), 0 0 3px var(--amber-dim);
+  display: block;
+  white-space: pre;
+  overflow: hidden;
+  letter-spacing: 0;
+}
+
+.retro-subtitle {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  margin-top: 5px;
+  color: var(--amber-bright);
+}
+
+.retro-subtitle-small {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--amber-dim);
+  margin-top: 2px;
+}
+
+/* ─── Trennlinie ─────────────────────────────────────────────────────────────*/
+.retro-divider {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--amber-dim);
+  letter-spacing: 0;
+  margin: 5px 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+/* ─── Info-Raster ────────────────────────────────────────────────────────────*/
+.retro-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 3px 0;
+}
+
+.retro-info-row {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.retro-info-key {
+  color: var(--amber-dim);
+  white-space: nowrap;
+  font-size: 12px;
+  min-width: 96px;
+}
+
+.retro-info-val {
+  color: var(--amber);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+/* ─── Warnhinweis ────────────────────────────────────────────────────────────*/
+.retro-notice {
+  font-size: 12px;
+  color: var(--amber-bright);
+  text-align: center;
+  margin: 3px 0;
+  line-height: 1.6;
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 6px var(--amber), 0 0 2px var(--amber-dim);
+}
+
+/* ─── Formular ───────────────────────────────────────────────────────────────*/
+.retro-form {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 5px 0;
+}
+
+.retro-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.retro-label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--amber-dim);
+  white-space: nowrap;
+  min-width: 96px;
+  cursor: default;
+}
+
+.retro-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--amber-dim);
+  color: var(--amber-bright);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 2px 3px;
+  outline: none;
+  caret-color: var(--amber);
+  text-shadow: 0 0 6px var(--amber), 0 0 2px var(--amber-dim);
+  letter-spacing: 0.06em;
+  /* Vergilbt, eingestaubt */
+  filter: sepia(0.25) brightness(0.92);
+  transition: border-color 0.2s;
+}
+
+.retro-input:focus {
+  border-bottom-color: var(--amber);
+  text-shadow: 0 0 10px var(--amber), 0 0 4px var(--amber-dim);
+}
+
+.retro-input:disabled {
+  opacity: 0.45;
+}
+
+/* ─── Anmelden-Button ────────────────────────────────────────────────────────*/
+.retro-submit-btn {
+  background: transparent;
+  border: 1px solid var(--amber-dim);
+  color: var(--amber);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  padding: 7px 14px;
+  cursor: pointer;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 6px var(--amber);
+  transition: background 0.12s, color 0.12s;
+  width: 100%;
+  margin-top: 3px;
+}
+
+.retro-submit-btn:not(:disabled):hover {
+  background: var(--amber-dim);
+  color: var(--bg-dark);
+  text-shadow: none;
+}
+
+.retro-submit-btn:disabled {
+  opacity: 0.30;
+  cursor: not-allowed;
+  border-color: var(--amber-dim);
+  color: var(--amber-dim);
+}
+
+/* ─── Meldungszeile ──────────────────────────────────────────────────────────*/
+.retro-message-line {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--amber-bright);
+  margin-top: 7px;
+  min-height: 18px;
+  text-shadow: 0 0 8px var(--amber);
+  letter-spacing: 0.04em;
+}
+
+/* ─── Zufälliger Verbindungsfehler ───────────────────────────────────────────*/
+.retro-random-fail {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--amber-dim);
+  background: rgba(200, 130, 10, 0.04);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.retro-random-fail-title {
+  color: var(--amber-bright);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+
+.retro-random-fail-msg {
+  color: var(--amber);
+  letter-spacing: 0.03em;
+}
+
+.retro-random-fail-retry {
+  color: var(--amber-dim);
+  margin-top: 3px;
+  font-size: 11px;
+  animation: slowBlink 1.2s step-end infinite;
+}
+
+/* ─── Versuchszähler ─────────────────────────────────────────────────────────*/
+.retro-attempt-info {
+  font-size: 11px;
+  color: var(--amber-dim);
+  margin-top: 5px;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Fußzeile ───────────────────────────────────────────────────────────────*/
+.retro-footer {
+  font-size: 10px;
+  color: var(--amber-dim);
+  text-align: center;
+  margin-top: 3px;
+  line-height: 1.6;
+  opacity: 0.55;
+}
+
+/* ─── Blinkender Cursor ──────────────────────────────────────────────────────*/
+.crt-cursor {
+  animation: cursorBlink 0.85s step-end infinite;
+  color: var(--amber-bright);
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ─── Langsames Blinken ──────────────────────────────────────────────────────*/
+.retro-blink-slow {
+  animation: slowBlink 1.5s step-end infinite;
+}
+
+@keyframes slowBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+
+/* ─── Boot-Screen ────────────────────────────────────────────────────────────*/
+.retro-boot {
+  flex: 1;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.retro-boot-line {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--amber);
+  line-height: 1.65;
+  letter-spacing: 0.03em;
+  animation: fadeInLine 0.08s ease-in;
+}
+
+@keyframes fadeInLine {
+  from { opacity: 0; transform: translateX(-3px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GROUP POLICY / POST-LOGIN SCREEN
+   Grau-Blau, Windows NT 4.0 Stil
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.retro-policy-screen {
+  background: var(--policy-bg) !important;
+  color: var(--policy-fg) !important;
+  justify-content: center;
+}
+
+.retro-policy-screen * {
+  text-shadow: none !important;
+  font-family: var(--font-mono);
+}
+
+.policy-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: 100%;
+  max-width: 480px;
+  padding: 24px 16px;
+}
+
+.policy-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #a08040;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+}
+
+.policy-logo-char {
+  color: #c8922a;
+  font-size: 16px;
+}
+
+.policy-logo-text {
+  color: #d4a843;
+  font-size: 14px;
+  letter-spacing: 0.15em;
+}
+
+.policy-step-box {
+  width: 100%;
+  border: 1px solid #3a2e10;
+  background: #0d0b05;
+  padding: 14px 16px;
+}
+
+.policy-step-title {
+  font-size: 13px;
+  color: #c8922a;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #2a2008;
+  padding-bottom: 6px;
+}
+
+.policy-step-lines {
+  font-size: 12px;
+  color: #9a7830;
+  line-height: 1.7;
+  min-height: 100px;
+  letter-spacing: 0.02em;
+}
+
+.policy-step-line {
+  animation: fadeInLine 0.1s ease-in;
+}
+
+.policy-empty-line {
+  height: 1.7em;
+}
+
+.policy-progress-bar-wrap {
+  width: 100%;
+  height: 10px;
+  background: #1a1505;
+  border: 1px solid #3a2e10;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.policy-progress-bar-fill {
+  height: 100%;
+  background: #c8922a;
+  transition: width 0.3s linear;
+}
+
+.policy-progress-label {
+  font-size: 11px;
+  color: #7a5e20;
+  text-align: right;
+  margin-top: 3px;
+}
+
+.policy-step-counter {
+  font-size: 11px;
+  color: #6a4e18;
+  letter-spacing: 0.06em;
+}
+
+.policy-footer-note {
+  font-size: 11px;
+  color: #5a4010;
+  text-align: center;
+  letter-spacing: 0.04em;
+  animation: slowBlink 2s step-end infinite;
+}
+
+/* ─── Schritt-Indikatoren ─────────────────────────────────────────────────*/
+.policy-steps-indicator {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.policy-step-indicator {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 4px;
+  border: 1px solid #2a1e08;
+  background: #0a0800;
+  opacity: 0.4;
+  font-size: 10px;
+  color: #6a4e18;
+  letter-spacing: 0.04em;
+  text-align: center;
+  transition: opacity 0.3s;
+}
+
+.policy-step-indicator.policy-step-done {
+  opacity: 0.65;
+  border-color: #3a2e10;
+  color: #8a6e28;
+}
+
+.policy-step-indicator.policy-step-active {
+  opacity: 1;
+  border-color: #c8922a;
+  color: #c8922a;
+  background: #0f0c04;
+  animation: policyStepPulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes policyStepPulse {
+  from { border-color: #c8922a; }
+  to   { border-color: #a07020; }
+}
+
+.policy-step-num {
+  font-size: 14px;
+  line-height: 1;
+  font-weight: bold;
+}
+
+.policy-step-ind-title {
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ALARM / LOCKDOWN SCREEN
+   Dunkelrot – gedämpft, nicht grell. Bedrohlich durch Stille, nicht Lärm.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.retro-alarm-screen {
+  background: var(--alarm-red-bg) !important;
+  color: var(--alarm-red) !important;
+  flex-direction: column;
+}
+
+.retro-alarm-screen * {
+  text-shadow: 0 0 6px rgba(204, 34, 0, 0.5), 0 0 2px rgba(204, 34, 0, 0.25) !important;
+  font-family: var(--font-mono);
+}
+
+/* Langsames, bedrohliches Flackern */
+.alarm-phase2 {
+  animation: alarmFlicker 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes alarmFlicker {
+  0%   { background-color: #0c0200; }
+  100% { background-color: #140300; }
+}
+
+/* ─── Alarm-Topbar ───────────────────────────────────────────────────────────*/
+.alarm-topbar {
+  width: 100%;
+  padding: 4px 10px;
+  background: rgba(204, 34, 0, 0.15);
+  border-bottom: 1px solid var(--alarm-red-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+
+.alarm-topbar-title {
+  color: var(--alarm-red);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+}
+
+.alarm-topbar-blink {
+  animation: alarmBlink 0.6s step-end infinite;
+  color: var(--alarm-red);
+}
+
+@keyframes alarmBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ─── Alarm-Body (zweispaltig) ───────────────────────────────────────────────*/
+.alarm-body {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding: 8px 10px;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* ─── Linke Spalte: Status ───────────────────────────────────────────────────*/
+.alarm-left-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.alarm-status-box {
+  border: 1px solid var(--alarm-red-dim);
+  padding: 8px 10px;
+  background: rgba(204, 34, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.alarm-status-row {
+  font-size: 12px;
+  color: var(--alarm-red);
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  display: flex;
+  gap: 4px;
+}
+
+.alarm-blink-slow {
+  animation: alarmBlinkSlow 1.0s step-end infinite;
+}
+
+@keyframes alarmBlinkSlow {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+.alarm-key {
+  color: var(--alarm-red-dim);
+  white-space: nowrap;
+  min-width: 72px;
+  font-size: 11px;
+}
+
+.alarm-val {
+  color: var(--alarm-red);
+  font-size: 11px;
+}
+
+.alarm-blink {
+  animation: alarmBlink 0.5s step-end infinite;
+}
+
+.alarm-status-divider {
+  color: var(--alarm-red-dim);
+  font-size: 11px;
+  opacity: 0.5;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.alarm-rotating-msg {
+  font-size: 12px;
+  color: var(--alarm-amber);
+  letter-spacing: 0.04em;
+  min-height: 18px;
+  animation: msgFade 0.3s ease-in;
+}
+
+@keyframes msgFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.alarm-warn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.alarm-warn-item {
+  font-size: 11px;
+  color: var(--alarm-red-dim);
+  letter-spacing: 0.03em;
+  line-height: 1.8;
+  padding-left: 4px;
+}
+
+.alarm-warn-active {
+  color: var(--alarm-red) !important;
+  animation: alarmWarnPulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes alarmWarnPulse {
+  from { opacity: 0.7; }
+  to   { opacity: 1; }
+}
+
+/* ─── CMD-Cursor ──────────────────────────────────────────────────────────────*/
+.alarm-cmd-cursor {
+  display: inline-block;
+  animation: cursorBlink 0.85s step-end infinite;
+  color: var(--cmd-text);
+  text-shadow: none !important;
+}
+
+/* ─── Image-Build Box ────────────────────────────────────────────────────────*/
+.alarm-imagebuild-box {
+  border: 1px solid var(--alarm-red-dim);
+  padding: 6px 8px;
+  background: rgba(204, 34, 0, 0.03);
+  font-size: 10px;
+  color: var(--alarm-red-dim);
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+}
+
+.alarm-imagebuild-title {
+  color: var(--alarm-red);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--alarm-red-dim);
+  padding-bottom: 3px;
+}
+
+.alarm-imagebuild-line {
+  animation: fadeInLine 0.1s ease-in;
+}
+
+/* ─── Rechte Spalte: Fake CMD-Fenster ────────────────────────────────────────
+   Windows NT 4.0 / Windows 2000 Stil
+   ─────────────────────────────────────────────────────────────────────────── */
+.alarm-cmd-col {
+  flex: 1.2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.alarm-cmd-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--cmd-border);
+  background: var(--cmd-bg);
+  overflow: hidden;
+  animation: cmdAppear 0.2s ease-in;
+}
+
+@keyframes cmdAppear {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.alarm-cmd-titlebar {
+  background: var(--cmd-title);
+  color: var(--cmd-title-fg);
+  padding: 3px 4px 3px 6px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-shadow: none !important;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  font-family: 'Courier New', monospace;
+  user-select: none;
+}
+
+.alarm-cmd-titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.alarm-cmd-titlebar-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.alarm-cmd-titlebar-icon {
+  font-size: 9px;
+  color: #cccccc;
+  text-shadow: none !important;
+}
+
+.alarm-cmd-titlebar-btn {
+  font-size: 11px;
+  color: #ffffff;
+  text-shadow: none !important;
+  background: #888888;
+  border: 1px solid;
+  border-color: #cccccc #444444 #444444 #cccccc;
+  padding: 0 4px;
+  min-width: 16px;
+  text-align: center;
+  cursor: default;
+  line-height: 14px;
+  font-family: 'Courier New', monospace;
+}
+
+.alarm-cmd-close {
+  color: #ffffff;
+}
+
+.alarm-cmd-titlebar-text {
+  font-size: 11px;
+  color: var(--cmd-title-fg);
+  text-shadow: none !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+}
+
+.alarm-cmd-body {
+  flex: 1;
+  padding: 6px 8px;
+  overflow: hidden;
+  font-size: 10px;
+  color: var(--cmd-text);
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  text-shadow: none !important;
+  background: var(--cmd-bg);
+}
+
+.alarm-cmd-line {
+  white-space: pre-wrap;
+  word-break: break-all;
+  animation: fadeInLine 0.05s ease-in;
+  text-shadow: none !important;
+}
+
+/* ─── Alarm-Untere Leiste ────────────────────────────────────────────────────*/
+.alarm-bottombar {
+  width: 100%;
+  padding: 3px 10px;
+  background: rgba(204, 34, 0, 0.10);
+  border-top: 1px solid var(--alarm-red-dim);
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--alarm-red-dim);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+/* ─── Phosphor-Einbrennung (dekorativ) ───────────────────────────────────────*/
+.retro-login-panel::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 38%,
+    rgba(200, 130, 10, 0.035) 0%,
+    transparent 65%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ─── Mobile Anpassungen ─────────────────────────────────────────────────────*/
+@media (max-width: 480px) {
+  .retro-ascii-art {
+    font-size: 9px;
+  }
+  .retro-login-panel {
+    padding: 6px 8px;
+  }
+  .retro-info-key {
+    min-width: 76px;
+    font-size: 10px;
+  }
+  .retro-info-val {
+    font-size: 10px;
+  }
+  .retro-label {
+    font-size: 11px;
+    min-width: 76px;
+  }
+  .retro-input {
+    font-size: 12px;
+  }
+  .retro-submit-btn {
+    font-size: 13px;
+  }
+  .alarm-body {
+    flex-direction: column;
+  }
+  .alarm-cmd-col {
+    max-height: 200px;
+  }
+  .alarm-cmd-body {
+    font-size: 9px;
+  }
+  .policy-container {
+    padding: 16px 10px;
+  }
+}

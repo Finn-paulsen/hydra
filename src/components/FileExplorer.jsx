@@ -116,7 +116,7 @@ function Folder({ explorer, onAdd, onOpenFile, onContextMenu, renderLabel, selec
                   onClick={handleSelect ? handleSelect(item.id, explorer) : undefined}
                   onKeyDown={handleKeyDownSelect ? handleKeyDownSelect(explorer) : undefined}
                 >
-                  {renderLabel ? renderLabel(item, <>🗄 {item.name}</>) : <>🗄 {item.name}</>}
+                  {renderLabel ? renderLabel(item, <><span className="gov-file-icon">📄</span>{item.name}</>) : <><span className="gov-file-icon">📄</span>{item.name}</>}
                 </div>
               )
             )}
@@ -492,35 +492,49 @@ export default function FileExplorer() {
     }
   };
 
+  const currentPath = explorerData?.name || 'GOV-ARCHIVE';
+
   return (
-    <div className="gov-explorer-container">
-      {editorFile ? (
-        <FileEditor
-          name={editorFile.name}
-          content={editorContent}
-          onSave={handleSaveFile}
-          onBack={handleBack}
-        />
-      ) : (
-        <Folder
-          explorer={explorerData}
-          onAdd={handleAdd}
-          onOpenFile={handleOpenFile}
-          onContextMenu={handleContextMenu}
-          renderLabel={renderLabel}
-          selectedIds={selectedIds}
-          handleSelect={handleSelect}
-          handleKeyDownSelect={handleKeyDownSelect}
-        />
-      )}
-      {contextMenu && (
-        <GovContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          options={contextOptions}
-          onClose={closeContextMenu}
-        />
-      )}
+    <div className="gov-explorer-shell">
+      <div className="gov-explorer-toolbar">
+        <div className="gov-explorer-title">Datei-Explorer</div>
+        <div className="gov-explorer-actions">
+          <button className="toolbar-btn" onClick={() => handleAdd(explorerData.id, 'Neuer Ordner', true)}>Neuer Ordner</button>
+          <button className="toolbar-btn" onClick={() => handleAdd(explorerData.id, 'Neue Datei.txt', false)}>Neue Datei</button>
+          <button className="toolbar-btn" onClick={() => setSelectedIds([])}>Auswahl aufheben</button>
+        </div>
+      </div>
+      <div className="gov-explorer-breadcrumbs">Pfad: {currentPath}</div>
+      <div className="gov-explorer-container">
+        {editorFile ? (
+          <FileEditor
+            name={editorFile.name}
+            content={editorContent}
+            onSave={handleSaveFile}
+            onBack={handleBack}
+          />
+        ) : (
+          <Folder
+            explorer={explorerData}
+            onAdd={handleAdd}
+            onOpenFile={handleOpenFile}
+            onContextMenu={handleContextMenu}
+            renderLabel={renderLabel}
+            selectedIds={selectedIds}
+            handleSelect={handleSelect}
+            handleKeyDownSelect={handleKeyDownSelect}
+          />
+        )}
+        {contextMenu && (
+          <GovContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            options={contextOptions}
+            onClose={closeContextMenu}
+          />
+        )}
+      </div>
+      <div className="gov-explorer-statusbar">{selectedIds.length ? `${selectedIds.length} Element(e) ausgewählt` : 'Bereit'} - Speichern in LocalStorage</div>
     </div>
   );
 }

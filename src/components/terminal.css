@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap');
+
 	/* Datei-Explorer */
 	.file-explorer {
 		background: #232323;
@@ -526,328 +528,201 @@
 	}
 	/* Behörden-Desktop und Taskbar */
 
-	.gov-desktop-bg {
-		position: fixed;
-		inset: 0;
-		background: #181818;
-		color: #f4f4e6;
-		font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
-		overflow: hidden;
-		z-index: 0;
-	}
-	.gov-desktop-icons {
-		position: absolute;
-		top: 32px;
-		left: 32px;
-		display: flex;
-		flex-direction: column;
-		gap: 24px;
-	}
-	.gov-desktop-icon {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		cursor: pointer;
-		width: 72px;
-		user-select: none;
-	}
-	.gov-icon-symbol {
-		font-size: 2.2rem;
-		color: #ffbf47;
-		margin-bottom: 4px;
-	}
-	.gov-icon-label {
-		font-size: 1rem;
-		color: #f4f4e6;
-		text-align: center;
-	}
-	.gov-window {
-		position: absolute;
-		top: 80px;
-		left: 160px;
-		min-width: 320px;
-		min-height: 180px;
-		background: #232323;
-		border: 2px solid #ffbf47;
-		color: #f4f4e6;
-		font-family: inherit;
-		box-shadow: 0 0 24px #2a1a00;
-	}
-.gov-window[data-terminal="true"] {
-	background: transparent;
-	border: none;
-	box-shadow: none;
-}
-	.gov-window-titlebar {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		background: #181818;
-		padding: 4px 8px;
-		border-bottom: 1px solid #ffbf47;
-		user-select: none;
-		cursor: grab;
-	}
-	.gov-window-titlebar:active {
-		cursor: grabbing;
-	}
-	.gov-window-title {
-		font-weight: 900;
-		font-size: 1.09rem;
-	}
-	.gov-window-controls button {
-		background: #232323;
-		color: #ffbf47;
-		border: 1px solid #ffbf47;
-		font-size: 1.1rem;
-		margin-left: 4px;
-		cursor: pointer;
-		border-radius: 0;
-		width: 24px;
-		height: 24px;
-		padding: 0;
-	}
-	.gov-window-content {
-		padding: 16px;
-		font-size: 1rem;
-		min-height: 100px;
-	}
-	.gov-taskbar {
-		position: fixed;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		height: 38px;
-		background: #232323;
-		border-top: 2px solid #ffbf47;
-		display: flex;
-		align-items: center;
-		z-index: 10000;
-	}
-	.gov-taskbar-left {
-		flex: 0 0 auto;
-		margin-left: 12px;
-	}
-	.gov-taskbar-menu {
-		background: #181818;
-		color: #ffbf47;
-		border: 2px solid #ffbf47;
-		font-weight: 900;
-		font-size: 1.09rem;
-		padding: 4px 18px;
-		cursor: pointer;
-		border-radius: 0;
-	}
-	.gov-taskbar-windows {
-		flex: 1 1 auto;
-		display: flex;
-		gap: 6px;
-		margin-left: 18px;
-	}
-	.gov-taskbar-window-btn {
-		background: #232323;
-		color: #f4f4e6;
-		border: 1px solid #ffbf47;
-		font-size: 1rem;
-		padding: 4px 12px;
-		cursor: pointer;
-		border-radius: 0;
-	}
-	.gov-taskbar-window-btn.minimized {
-		opacity: 0.5;
-	}
-	.gov-taskbar-clock {
-		flex: 0 0 auto;
-		margin-right: 18px;
-		margin-left: auto;
-		font-size: 1.09rem;
-		font-weight: 900;
-		color: #ffbf47;
-	}
-	/* Minimalistischer Behörden-Terminal-Look für Login */
+	/* Desktop-Klassen wurden in desktop.css verschoben */
+	/* ============================================================
+	   ███  ALT-BEHÖRDEN-LOGIN / WINDOWS-95-ATMOSPHÄRE  ███
+	   ============================================================ */
 	.terminal-login-box {
-		background: #000;
-		color: #00ff00;
-		font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
-		border: 2px solid #00ff00;
-		border-radius: 0;
-		box-shadow: 0 0 32px #001a00;
-		max-width: 400px;
+		background:
+			linear-gradient(180deg, #18130d 0%, #241b11 48%, #120d08 100%);
+		border: 2px solid #b88a3b;
+		color: #ffdd9b;
+		font-family: 'Fira Mono', 'Courier New', monospace;
+		max-width: 480px;
+		padding: 28px 32px 24px 32px;
 		margin: 60px auto;
-		padding: 32px 32px 24px 32px;
 		position: relative;
+		box-shadow:
+			0 0 0 1px rgba(255, 221, 155, 0.06) inset,
+			0 0 24px rgba(0, 0, 0, 0.65) inset,
+			0 0 28px rgba(30, 18, 0, 0.85);
+		filter: contrast(0.94) brightness(0.84);
+		animation: crtAmberFlicker 4s infinite;
+	}
+	.terminal-login-box::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background:
+			repeating-linear-gradient(180deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 4px),
+			radial-gradient(circle at top, rgba(255,255,255,0.04), transparent 25%);
+		pointer-events: none;
+		opacity: 0.24;
+	}
+	.terminal-login-box::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background:
+			url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4//8/AwAI/AL+ZMhUlQAAAABJRU5ErkJggg==") center/cover no-repeat;
+		opacity: 0.08;
+		mix-blend-mode: screen;
+		pointer-events: none;
 	}
 	.terminal-header {
-		text-align: left;
-		margin-bottom: 18px;
+		margin-bottom: 14px;
 	}
 	.terminal-title {
+		font-size: 1.12rem;
 		font-weight: 900;
-		font-size: 1.3rem;
-		letter-spacing: 0.09em;
-		color: #00ff00;
-		margin-bottom: 2px;
+		color: #ffe8b8;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		text-shadow: 0 0 8px rgba(255, 221, 155, 0.35);
 	}
-	.terminal-subtitle {
-		font-weight: 700;
-		font-size: 1.09rem;
-		color: #00ff00;
-		margin-bottom: 6px;
-	}
+	.terminal-subtitle,
 	.terminal-meta {
-		font-size: 0.97rem;
-		color: #00ff00;
+		color: #e3c68a;
+		font-size: 0.88rem;
+		opacity: 0.9;
 	}
 	.terminal-warning {
-		background: #000;
-		border: 1px solid #00ff00;
-		border-radius: 0;
-		padding: 12px 14px;
-		margin-bottom: 18px;
-		color: #00ff00;
-		font-size: 1.01rem;
-		box-shadow: 0 2px 18px #001a00;
+		background: linear-gradient(180deg, #251b12 0%, #19140d 100%);
+		border: 1px solid #b88a3b;
+		color: #ffe7b4;
+		box-shadow: 0 0 12px rgba(0,0,0,0.45) inset, 0 0 10px rgba(184,138,59,0.16);
 	}
-	.terminal-warning-title {
-		font-weight: 900;
-		font-size: 1.09rem;
-		color: #00ff00;
-		margin-bottom: 8px;
-		letter-spacing: 0.09em;
+	.terminal-system-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+		margin: 10px 0 12px;
 	}
-	.terminal-warning-text {
-		margin-bottom: 8px;
+	.terminal-info-card {
+		background: linear-gradient(180deg, #2d2317 0%, #1f180f 100%);
+		border: 1px solid #b88a3b;
+		padding: 8px 10px;
+		box-shadow: 0 0 8px rgba(0,0,0,0.45) inset;
 	}
-	.terminal-login-form {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
-	.terminal-label {
-		font-size: 1.01rem;
-		color: #00ff00;
-		font-weight: 700;
+	.terminal-info-label {
+		display: block;
+		font-size: 0.72rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: #d7b87a;
 		margin-bottom: 2px;
 	}
-	.terminal-input {
-		background: #000;
-		color: #00ff00;
-		border: 1px solid #00ff00;
-		border-radius: 0;
-		font-size: 1.09rem;
-		padding: 8px 10px;
-		font-family: inherit;
-		outline: none;
-		margin-bottom: 8px;
+	.terminal-info-card strong {
+		display: block;
+		font-size: 0.88rem;
+		color: #ffe7b4;
+		font-weight: 900;
 	}
-	.terminal-input:disabled {
-		background: #222;
-		color: #888;
+	.terminal-label {
+		color: #ffe7b4;
+		font-size: 0.95rem;
+		font-weight: 700;
+	}
+	.terminal-input {
+		background: linear-gradient(180deg, #1e170f 0%, #140f09 100%);
+		color: #ffe7b4;
+		border: 1px solid #b88a3b;
+		font-family: inherit;
+		font-size: 1.05rem;
+		padding: 8px 10px;
+		caret-color: #ffe7b4;
+		box-shadow: 0 0 6px rgba(0,0,0,0.45) inset;
+	}
+	.terminal-input:focus {
+		outline: none;
+		border-color: #ffe7b4;
+		box-shadow: 0 0 8px rgba(255,221,155,0.18) inset;
 	}
 	.terminal-btn {
-		background: #000;
-		color: #00ff00;
-		border: 2px solid #00ff00;
-		border-radius: 0;
+		background: linear-gradient(180deg, #2a2015 0%, #1a150f 100%);
+		color: #ffe7b4;
+		border: 1px solid #b88a3b;
 		font-weight: 900;
-		font-size: 1.09rem;
-		padding: 8px 18px;
-		cursor: pointer;
-		box-shadow: 0 2px 8px #001a00;
-		transition: background 0.2s;
+		text-shadow: 0 0 4px rgba(255,221,155,0.25);
+		box-shadow: 0 0 10px rgba(0,0,0,0.35) inset;
+	}
+	.terminal-btn:hover:not(:disabled) {
+		background: linear-gradient(180deg, #342a18 0%, #21190f 100%);
+		border-color: #ffe7b4;
 	}
 	.terminal-btn:disabled {
-		background: #222;
-		color: #888;
-		cursor: not-allowed;
+		opacity: 0.45;
 	}
-	.terminal-message {
-		margin-top: 12px;
-		font-size: 1.01rem;
-		color: #00ff00;
-		min-height: 24px;
-		font-family: inherit;
-	}
+	.terminal-message,
 	.terminal-countdown {
-		margin-top: 10px;
-		font-size: 1.09rem;
-		font-weight: 900;
-		color: #00ff00;
+		color: #ffe7b4;
+		text-shadow: 0 0 4px rgba(255,221,155,0.18);
 	}
-	.terminal-lockdown {
-		background: #200;
-		color: #fff;
-		border: 2px solid #ff2d2d;
-		font-size: 1.08rem;
-		font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
-		padding: 16px 18px 14px 18px;
-		margin-bottom: 10px;
-		margin-top: 10px;
-		box-shadow: 0 4px 18px rgba(255,0,0,0.22);
-		letter-spacing: 0.07em;
-		text-align: left;
-		z-index: 3;
-		font-weight: 900;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 8px;
+	@keyframes crtAmberFlicker {
+		0%, 100% { filter: brightness(0.82) contrast(0.92); }
+		50% { filter: brightness(0.78) contrast(0.88); }
 	}
-	.terminal-lockdown-title {
-		font-size: 1.18rem;
-		font-weight: 900;
-		color: #fff;
-		letter-spacing: 0.13em;
-		text-transform: uppercase;
-		margin-bottom: 4px;
-		display: block;
-	}
-	.terminal-lockdown-msg {
-		font-size: 1.01rem;
-		color: #fff;
-		font-weight: 700;
-		letter-spacing: 0.09em;
-	}
-	
-/* } entfernt: Überflüssige Klammer, die einen Syntaxfehler verursacht hat */
-.login-lockdown {
-	background: linear-gradient(90deg, #a10000 80%, #ff2d2d 100%);
-	color: #fff;
-	border: 2px solid #fff;
-	font-size: 1.08rem;
-	font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
-	padding: 16px 18px 14px 18px;
-	margin-bottom: 10px;
-	margin-top: 10px;
-	border-radius: 4px;
-	box-shadow: 0 4px 18px rgba(255,0,0,0.22);
-	letter-spacing: 0.07em;
-	text-align: left;
-	z-index: 3;
-	font-weight: 900;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 8px;
-	animation: blink 1.1s steps(2, start) infinite;
+
+	/* ============================================================
+	   ███  EXTREMER LOCKDOWN-ALARM (ROT / 90s MAINFRAME) ███
+	   ============================================================ */
+
+.terminal-lockdown {
+    background: #2a0000;
+    border: 3px solid #ff3b3b;
+    color: #fff;
+    padding: 26px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1.12rem;
+    text-shadow: 0 0 8px #ff3b3b;
+    animation: lockdownPulse 0.35s steps(2, start) infinite,
+               lockdownShake 0.25s infinite;
+    box-shadow: 0 0 32px #ff0000cc inset, 0 0 48px #ff0000cc;
+    position: relative;
 }
-.login-lockdown-title {
-	font-size: 1.18rem;
-	font-weight: 900;
-	color: #fff;
-	letter-spacing: 0.13em;
-	text-transform: uppercase;
-	margin-bottom: 4px;
-	display: block;
+
+/* ASCII Rahmen */
+.terminal-lockdown::before {
+    content: "┌──────────────────────────────────────────────┐";
+    position: absolute;
+    top: -22px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #ff3b3b;
+    font-weight: 900;
+    text-shadow: 0 0 6px #ff0000;
 }
-.login-lockdown-msg {
-	font-size: 1.01rem;
-	color: #fff;
-	font-weight: 700;
-	letter-spacing: 0.09em;
+
+.terminal-lockdown::after {
+    content: "└──────────────────────────────────────────────┘";
+    position: absolute;
+    bottom: -22px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #ff3b3b;
+    font-weight: 900;
+    text-shadow: 0 0 6px #ff0000;
 }
-.login-warning-head {
-	display: flex;
+
+/* Pulsieren */
+@keyframes lockdownPulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.55; }
+    100% { opacity: 1; }
+}
+
+/* Wackeln */
+@keyframes lockdownShake {
+    0% { transform: translate(0px, 0px); }
+    25% { transform: translate(1px, -1px); }
+    50% { transform: translate(-1px, 1px); }
+    75% { transform: translate(1px, 1px); }
+    100% { transform: translate(0px, 0px); }
+}
+
+
 
 /* Authentisches Regierungs-Terminal Login */
 .gov-terminal {
@@ -1031,10 +906,7 @@
 	min-height: 24px;
 	font-family: inherit;
 }
-	align-items: center;
-	gap: 12px;
-	margin-bottom: 10px;
-}
+
 .login-warning-icon {
 	font-size: 2.1rem;
 	color: #ff2d2d;
@@ -1313,6 +1185,7 @@
 .prompt-input{background:transparent;border:0;color:inherit;outline:none;font-family:inherit;font-size:15px;flex:1;min-width:6ch;caret-color:#cfeadf}
 
 @keyframes blink{50%{opacity:0}100%{opacity:1}}
+@keyframes legacyFlicker{0%,100%{filter:contrast(0.96) saturate(0.82)} 50%{filter:contrast(0.9) saturate(0.76)}}
 
 .hint{display:none}
 .cmd{color:#cfeadf;font-weight:700}
@@ -1337,8 +1210,19 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: #181b1e;
+	background: linear-gradient(180deg, #c3c7cb 0%, #a6a9ad 100%);
 	z-index: 60;
+}
+.login-overlay::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background:
+		repeating-linear-gradient(0deg, rgba(255,255,255,0.025), rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px),
+		radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 35%);
+	mix-blend-mode: soft-light;
+	opacity: 0.22;
+	pointer-events: none;
 }
 .login-box {
 	width: 420px;

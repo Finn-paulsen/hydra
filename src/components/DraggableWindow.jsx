@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+
 export default function DraggableWindow({
   window,
   getWindowContent,
@@ -8,11 +9,10 @@ export default function DraggableWindow({
   onMinimize,
   z
 }) {
-  const dragging = useRef(false);
-  const dragStart = useRef({ x: 0, y: 0 });
+  const dragging   = useRef(false);
+  const dragStart  = useRef({ x: 0, y: 0 });
   const windowStart = useRef({ x: 0, y: 0 });
 
-  // Mouse event handlers
   const handleMouseDown = (e) => {
     e.stopPropagation();
     onFocus && onFocus();
@@ -51,18 +51,19 @@ export default function DraggableWindow({
       }}
       onMouseDown={onFocus}
     >
+      {/* Titelleiste im Win95-Stil */}
       <div
         className="gov-window-titlebar"
-        style={{ cursor: "grab" }}
         onMouseDown={handleMouseDown}
       >
         <span className="gov-window-title">{window.title}</span>
         <div className="gov-window-buttons">
-          <button type="button" onClick={onMinimize}>_</button>
-          <button type="button" onClick={onClose}>X</button>
+          <button type="button" onClick={onMinimize} title="Minimieren">_</button>
+          <button type="button" onClick={onClose}    title="Schließen">✕</button>
         </div>
       </div>
 
+      {/* Inhalt */}
       <div className="gov-window-content">
         {getWindowContent && getWindowContent(window)}
       </div>
