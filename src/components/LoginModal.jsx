@@ -360,47 +360,55 @@ const POLICY_STEPS = [
       'Bitte warten...',
       '',
       'Benutzerkonfiguration wird geladen...',
+      'Domänencontroller wird kontaktiert...  [DC01.BUND.INT]',
       'Netzlaufwerke werden verbunden...',
+      '  H:\\  →  \\\\192.168.1.5\\users$\\%USERNAME%  [OK]',
       'Sicherheitsrichtlinien werden übernommen...',
       'Anmeldeskripte werden ausgeführt...',
+      '  LOGON.BAT  –  AUSGEFÜHRT',
     ],
-    duration: 3200,
+    duration: 4200,
   },
   {
     title: 'SYSTEMKONFIGURATION',
     lines: [
-      'Drucker werden konfiguriert...',
       'Softwareverteilung wird geprüft...',
-      '  [NETZWERKCLIENT v4.1]   – AKTUELL',
-      '  [SICHERHEITSMODUL REV.7] – AKTUELL',
-      '  [NETZWERKTREIBER IPX/SPX] – AKTUELL',
+      '  [NETZWERKCLIENT v4.1]      – AKTUELL',
+      '  [SICHERHEITSMODUL REV.7]   – AKTUELL',
+      '  [NETZWERKTREIBER IPX/SPX]  – AKTUELL',
+      '  [DRUCKER-TREIBER LPT1]     – AKTUELL',
       'Zertifikatsspeicher wird aktualisiert...',
+      'Lokale Sicherheitsrichtlinie wird angewendet...',
     ],
-    duration: 2800,
+    duration: 3500,
   },
   {
     title: 'PROFIL WIRD GELADEN',
     lines: [
       'Benutzerprofil wird synchronisiert...',
+      '  Quelle: \\\\192.168.1.5\\profiles$\\%USERNAME%',
       'Startmenü wird konfiguriert...',
       'Desktop-Einstellungen werden übernommen...',
       'Zugriffsrechte werden geprüft...',
       '  ARCHIV-ZUGRIFF:    STUFE II – GEWÄHRT',
       '  NETZWERK-ZUGRIFF:  EINGESCHRÄNKT',
+      '  DRUCKER-ZUGRIFF:   LOKAL ONLY',
     ],
-    duration: 2500,
+    duration: 3200,
   },
   {
     title: 'SITZUNG WIRD INITIALISIERT',
     lines: [
       'Sitzungs-ID wird registriert...',
       'Audit-Protokoll wird gestartet...',
-      'Verbindung wird hergestellt...',
-      '  STATUS: VERBUNDEN  [192.168.1.1]',
+      'Verbindung zum Zentralrechner...',
+      '  STATUS: HERGESTELLT  [192.168.1.1]',
+      'Sitzungsschlüssel wird generiert...',
       '',
       'Anmeldung erfolgreich.',
+      'Sitzung wird geöffnet...',
     ],
-    duration: 2000,
+    duration: 2800,
   },
 ]
 
@@ -421,6 +429,7 @@ export default function LoginModal({ onSuccess }) {
   const [alarmCmdLines, setAlarmCmdLines] = useState([])
   const [alarmSequence, setAlarmSequence] = useState([])
   const [randomFailMsg, setRandomFailMsg] = useState(null)
+  const [policyStarted, setPolicyStarted] = useState(false)  // einmaliger Trigger
   const [policyPhase, setPolicyPhase] = useState(-1)
   const [policyLines, setPolicyLines] = useState([])
   const [policyProgress, setPolicyProgress] = useState(0)
@@ -430,6 +439,7 @@ export default function LoginModal({ onSuccess }) {
   const alarmIntRef    = useRef(null)
   const alarmTxtIntRef = useRef(null)
   const cmdSwitchIntRef = useRef(null)
+  const policyRunning  = useRef(false)
   const { setLoginUser } = useUserProfile()
 
   // Uhr
@@ -504,38 +514,44 @@ export default function LoginModal({ onSuccess }) {
     return () => clearInterval(t)
   }, [bootDone])
 
-  // Policy-Sequenz (läuft nach erfolgreichem Login)
+  // Policy-Sequenz (läuft nach erfolgreichem Login – genau einmal)
+  // policyStarted wechselt nur einmal von false auf true → Effect wird genau einmal ausgeführt
   useEffect(() => {
-    if (policyPhase < 0) return
+    if (!policyStarted) return
     let cancelled = false
 
     async function runPolicy() {
       for (let i = 0; i < POLICY_STEPS.length; i++) {
         if (cancelled) return
+        // Neuen Schritt anzeigen: Titel, leere Zeilen, Fortschritt auf 0
         setPolicyPhase(i)
         setPolicyLines([])
         setPolicyProgress(0)
         playPolicyBeep()
-        await new Promise(r => setTimeout(r, 400))
+        await new Promise(r => setTimeout(r, 500))
+        if (cancelled) return
         const step = POLICY_STEPS[i]
+        const lineDelay = Math.floor(step.duration / step.lines.length)
         for (let j = 0; j < step.lines.length; j++) {
           if (cancelled) return
-          await new Promise(r => setTimeout(r, step.duration / step.lines.length))
+          await new Promise(r => setTimeout(r, lineDelay + Math.random() * 150))
+          if (cancelled) return
           setPolicyLines(prev => [...prev, step.lines[j]])
           setPolicyProgress(Math.round(((j + 1) / step.lines.length) * 100))
           if (step.lines[j] && step.lines[j] !== '') playTone(400 + j * 15, 25, 'square', 0.018)
         }
-        await new Promise(r => setTimeout(r, 700))
+        // Kurze Pause am Ende jedes Schritts
+        await new Promise(r => setTimeout(r, 900))
       }
       if (!cancelled) {
-        await new Promise(r => setTimeout(r, 600))
+        await new Promise(r => setTimeout(r, 700))
         onSuccess && onSuccess()
       }
     }
 
     runPolicy()
     return () => { cancelled = true }
-  }, [policyPhase])
+  }, [policyStarted])
 
   function simulateDelay(ms) { return new Promise(r => setTimeout(r, ms)) }
 
@@ -625,8 +641,8 @@ export default function LoginModal({ onSuccess }) {
       await simulateDelay(900)
       setMessage('')
       setBusy(false)
-      // Policy-Sequenz starten (policyPhase wechselt von -1 auf 0)
-      setPolicyPhase(0)
+      // Policy-Sequenz starten (einmaliger Trigger)
+      setPolicyStarted(true)
     } else {
       const newFail = failCount + 1
       setFailCount(newFail)
@@ -663,17 +679,34 @@ export default function LoginModal({ onSuccess }) {
   }
 
   // ─── GROUP POLICY SCREEN ───────────────────────────────────────────────────────
-  if (policyPhase >= 0) {
-    const step = POLICY_STEPS[Math.min(policyPhase, POLICY_STEPS.length - 1)]
+  if (policyStarted) {
+    const safePhase = Math.max(0, Math.min(policyPhase, POLICY_STEPS.length - 1))
+    const step = POLICY_STEPS[safePhase]
     return (
       <div className="retro-screen retro-policy-screen">
         <div className="crt-overlay" />
         <div className="policy-container">
           <div className="policy-logo-row">
             <span className="policy-logo-char">■</span>
-            <span className="policy-logo-text">SYSTEMKONFIGURATION</span>
+            <span className="policy-logo-text">BUND.INT  –  SICHERHEITSTERMINAL</span>
             <span className="policy-logo-char">■</span>
           </div>
+
+          {/* Schritt-Indikatoren oben */}
+          <div className="policy-steps-indicator">
+            {POLICY_STEPS.map((s, idx) => (
+              <div
+                key={idx}
+                className={'policy-step-indicator' +
+                  (idx < safePhase ? ' policy-step-done' :
+                   idx === safePhase ? ' policy-step-active' : '')}
+              >
+                <span className="policy-step-num">{idx + 1}</span>
+                <span className="policy-step-ind-title">{s.title.split(' ').slice(0, 2).join(' ')}</span>
+              </div>
+            ))}
+          </div>
+
           <div className="policy-step-box">
             <div className="policy-step-title">{step.title}</div>
             <div className="policy-step-lines">
@@ -690,7 +723,7 @@ export default function LoginModal({ onSuccess }) {
             <div className="policy-progress-label">{policyProgress}%</div>
           </div>
           <div className="policy-step-counter">
-            SCHRITT {policyPhase + 1} VON {POLICY_STEPS.length}
+            SCHRITT {safePhase + 1} VON {POLICY_STEPS.length}
           </div>
           <div className="policy-footer-note">
             Bitte warten. Computer nicht ausschalten oder neu starten.
