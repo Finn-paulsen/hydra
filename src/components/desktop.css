@@ -1,66 +1,61 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   GOV-ARCHIVE  –  Windows 95 / NT 4.0 Desktop
-   Verstaubt, grau, behördlich. Kein Neon, kein Glanz.
+   GOV-ARCHIVE  –  Windows XP / Reborn XP Stil Desktop
+   Luna Blue Theme – authentisches XP-Feeling
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 /* ─── Farbvariablen ──────────────────────────────────────────────────────────*/
 :root {
-  /* Win95 Grau-Palette */
-  --w95-bg:          #008080;   /* Teal-Desktop */
-  --w95-gray:        #c0c0c0;
-  --w95-gray-dark:   #808080;
-  --w95-gray-light:  #dfdfdf;
-  --w95-gray-mid:    #a8a8a8;
-  --w95-black:       #000000;
-  --w95-white:       #ffffff;
-  --w95-titlebar:    #000080;   /* NT-Blau */
-  --w95-titlebar-fg: #ffffff;
-  --w95-btn-face:    #c0c0c0;
+  /* XP Luna Blue Palette */
+  --xp-taskbar:        #245edb;   /* XP Taskleiste Blau */
+  --xp-taskbar-grad1:  #1f5bc4;
+  --xp-taskbar-grad2:  #3a7bd5;
+  --xp-start-green:    #3a9e3a;   /* Start-Button Grün */
+  --xp-start-green2:   #4db84d;
+  --xp-titlebar1:      #0a246a;   /* Titelleiste dunkelblau */
+  --xp-titlebar2:      #a6caf0;   /* Titelleiste hellblau */
+  --xp-titlebar-mid:   #2060c0;
+  --xp-gray:           #ece9d8;   /* XP Fenster-Hintergrund */
+  --xp-gray-dark:      #808080;
+  --xp-gray-light:     #f5f4ea;
+  --xp-white:          #ffffff;
+  --xp-black:          #000000;
+  --xp-btn-face:       #ece9d8;
+  --xp-btn-shadow:     #aca899;
+  --xp-btn-highlight:  #ffffff;
+  --xp-selection:      #316ac5;
+  --xp-selection-text: #ffffff;
 
-  /* Behörden-Amber für Akzente */
-  --gov-amber:       #c8820a;
-  --gov-amber-dim:   #7a4e06;
+  /* Behörden-Akzente */
+  --gov-amber:         #c8820a;
 
-  /* Raised/Sunken 3D-Effekte */
-  --border-raised:   #ffffff #808080 #808080 #ffffff;
-  --border-sunken:   #808080 #ffffff #ffffff #808080;
-  --border-outer:    #dfdfdf #000000 #000000 #dfdfdf;
+  /* Raised/Sunken 3D-Effekte XP */
+  --xp-border-raised:  #ffffff #aca899 #aca899 #ffffff;
+  --xp-border-sunken:  #aca899 #ffffff #ffffff #aca899;
 
-  --font-sys: 'MS Sans Serif', 'Tahoma', 'Arial', sans-serif;
+  --font-sys: 'Tahoma', 'Arial', sans-serif;
   --font-mono: 'VT323', 'Courier New', monospace;
 }
 
-/* ─── Desktop-Hintergrund ────────────────────────────────────────────────────*/
+/* ─── Desktop-Hintergrund (Bliss-Wallpaper) ──────────────────────────────────*/
 .win95-desktop {
   position: fixed;
   inset: 0;
-  background: var(--w95-bg);
   font-family: var(--font-sys);
   font-size: 11px;
   overflow: hidden;
   user-select: none;
-  /* Leichte CRT-Textur */
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 3px,
-      rgba(0,0,0,0.03) 3px,
-      rgba(0,0,0,0.03) 4px
-    );
+  background: #3a6ea5;
+  background-image: url('/bliss.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
-/* Dezentes Wallpaper-Muster (Punkte wie Win95 "Muster") */
+/* Kein zusätzliches Wallpaper-Overlay nötig */
 .win95-wallpaper {
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle, rgba(0,0,0,0.18) 1px, transparent 1px);
-  background-size: 4px 4px;
-  pointer-events: none;
-  opacity: 0.35;
+  display: none;
 }
 
 /* ─── Desktop-Icons ──────────────────────────────────────────────────────────*/
@@ -70,58 +65,84 @@
   left: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .win95-icon {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 72px;
-  padding: 4px 2px;
+  width: 82px;
+  padding: 6px 4px 6px 4px;
   cursor: pointer;
   border: 1px solid transparent;
+  border-radius: 3px;
+  transition: background 0.1s;
 }
 
 .win95-icon:hover {
-  border-color: rgba(255,255,255,0.3);
-  background: rgba(0,0,128,0.25);
+  border-color: rgba(255,255,255,0.7);
+  background: rgba(49,106,197,0.40);
 }
 
 .win95-icon-selected {
-  border: 1px dotted #ffffff !important;
-  background: rgba(0,0,128,0.45) !important;
+  border: 1px dotted rgba(255,255,255,0.95) !important;
+  background: rgba(49,106,197,0.60) !important;
 }
 
 .win95-icon-img {
-  font-size: 2rem;
+  font-size: 3.2rem;
   line-height: 1;
-  margin-bottom: 3px;
-  /* Leicht verblasst – alter Monitor */
-  filter: saturate(0.75) brightness(0.9);
+  margin-bottom: 5px;
+  filter: drop-shadow(1px 2px 4px rgba(0,0,0,0.6));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+}
+
+/* SVG-basierte Icons für echtes XP-Feeling */
+.win95-icon-img.xp-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .win95-icon-label {
   font-family: var(--font-sys);
   font-size: 11px;
+  font-weight: 400;
   color: #ffffff;
   text-align: center;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.85);
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.95), -1px -1px 2px rgba(0,0,0,0.7), 0 0 8px rgba(0,0,0,0.8);
   word-break: break-word;
-  line-height: 1.2;
+  line-height: 1.3;
+  max-width: 80px;
+  padding: 2px 3px;
+  background: rgba(0,0,0,0.0);
+  border-radius: 2px;
 }
 
-/* ─── Taskleiste ─────────────────────────────────────────────────────────────*/
+/* ─── Taskleiste (XP Luna Blue) ──────────────────────────────────────────────*/
 .win95-taskbar {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   height: 30px;
-  background: var(--w95-gray);
-  /* 3D-Erhöhung oben */
-  border-top: 2px solid var(--w95-white);
-  box-shadow: inset 0 1px 0 var(--w95-gray-light);
+  background: linear-gradient(to bottom,
+    #245edb 0%,
+    #3a7bd5 8%,
+    #2060c8 50%,
+    #1a52b8 51%,
+    #1f5bc4 100%
+  );
+  border-top: 1px solid #0a246a;
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.3) inset;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -129,48 +150,70 @@
   z-index: 10000;
 }
 
-/* ─── Start-Button ───────────────────────────────────────────────────────────*/
+/* ─── Start-Button (XP Grün) ─────────────────────────────────────────────────*/
 .win95-start-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  height: 22px;
-  padding: 0 6px;
-  background: var(--w95-gray);
-  border: 2px solid;
-  border-color: var(--w95-white) var(--w95-gray-dark) var(--w95-gray-dark) var(--w95-white);
+  gap: 5px;
+  height: 24px;
+  padding: 0 10px 0 6px;
+  background: linear-gradient(to bottom,
+    #5cb85c 0%,
+    #4cae4c 40%,
+    #3a9e3a 41%,
+    #2d8a2d 100%
+  );
+  border: 1px solid #1a6a1a;
+  border-radius: 0 12px 12px 0;
   cursor: pointer;
   font-family: var(--font-sys);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: bold;
-  color: var(--w95-black);
+  color: #ffffff;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
   white-space: nowrap;
   flex-shrink: 0;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+  letter-spacing: 0.02em;
+}
+
+.win95-start-btn:hover {
+  background: linear-gradient(to bottom,
+    #6ec86e 0%,
+    #5cbe5c 40%,
+    #4aae4a 41%,
+    #3a9a3a 100%
+  );
 }
 
 .win95-start-btn:active,
 .win95-start-btn-active {
-  border-color: var(--w95-gray-dark) var(--w95-white) var(--w95-white) var(--w95-gray-dark) !important;
-  padding-top: 1px;
-  padding-left: 7px;
+  background: linear-gradient(to bottom,
+    #2d8a2d 0%,
+    #3a9e3a 60%,
+    #4cae4c 100%
+  ) !important;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.4) !important;
 }
 
 .win95-start-logo {
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
 }
 
 .win95-start-text {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: bold;
+  font-style: italic;
 }
 
 /* ─── Trennlinie ─────────────────────────────────────────────────────────────*/
 .win95-taskbar-sep {
   width: 2px;
   height: 22px;
-  border-left: 1px solid var(--w95-gray-dark);
-  border-right: 1px solid var(--w95-white);
+  border-left: 1px solid rgba(0,0,0,0.3);
+  border-right: 1px solid rgba(255,255,255,0.2);
   margin: 0 2px;
   flex-shrink: 0;
 }
@@ -192,29 +235,39 @@
   min-width: 80px;
   max-width: 160px;
   padding: 0 6px;
-  background: var(--w95-gray);
-  border: 2px solid;
-  border-color: var(--w95-white) var(--w95-gray-dark) var(--w95-gray-dark) var(--w95-white);
+  background: linear-gradient(to bottom,
+    #3a7bd5 0%,
+    #2060c8 50%,
+    #1a52b8 100%
+  );
+  border: 1px solid rgba(0,0,0,0.4);
+  border-radius: 3px;
   cursor: pointer;
   font-family: var(--font-sys);
   font-size: 11px;
-  color: var(--w95-black);
+  color: #ffffff;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
   text-align: left;
   overflow: hidden;
   flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .win95-taskbar-btn-active {
-  border-color: var(--w95-gray-dark) var(--w95-white) var(--w95-white) var(--w95-gray-dark) !important;
-  background: var(--w95-gray-light);
+  background: linear-gradient(to bottom,
+    #1a52b8 0%,
+    #2060c8 50%,
+    #3a7bd5 100%
+  ) !important;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.3) !important;
 }
 
 .win95-taskbar-btn-min {
-  opacity: 0.75;
+  opacity: 0.7;
 }
 
 .win95-taskbar-btn-icon {
-  font-size: 12px;
+  font-size: 13px;
   flex-shrink: 0;
 }
 
@@ -237,58 +290,60 @@
 .win95-tray-sep {
   width: 2px;
   height: 22px;
-  border-left: 1px solid var(--w95-gray-dark);
-  border-right: 1px solid var(--w95-white);
+  border-left: 1px solid rgba(0,0,0,0.3);
+  border-right: 1px solid rgba(255,255,255,0.2);
   margin: 0 2px;
 }
 
 .win95-tray-icons {
   display: flex;
   gap: 4px;
-  font-size: 13px;
-  padding: 0 4px;
-  border: 1px solid;
-  border-color: var(--w95-gray-dark) var(--w95-white) var(--w95-white) var(--w95-gray-dark);
+  font-size: 14px;
+  padding: 0 6px;
   height: 22px;
   align-items: center;
+  background: rgba(0,0,0,0.15);
+  border-radius: 2px;
 }
 
 .win95-tray-clock {
   font-family: var(--font-sys);
   font-size: 11px;
-  color: var(--w95-black);
-  padding: 0 6px;
+  color: #ffffff;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+  padding: 0 8px;
   height: 22px;
   display: flex;
   align-items: center;
-  border: 1px solid;
-  border-color: var(--w95-gray-dark) var(--w95-white) var(--w95-white) var(--w95-gray-dark);
+  background: rgba(0,0,0,0.15);
+  border-radius: 2px;
   white-space: nowrap;
 }
 
-/* ─── Startmenü ──────────────────────────────────────────────────────────────*/
+/* ─── Startmenü (XP Luna Blue) ───────────────────────────────────────────────*/
 .win95-startmenu {
   position: fixed;
   left: 0;
   bottom: 30px;
   display: flex;
   flex-direction: row;
-  background: var(--w95-gray);
-  border: 2px solid;
-  border-color: var(--w95-white) var(--w95-gray-dark) var(--w95-gray-dark) var(--w95-white);
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+  background: var(--xp-gray);
+  border: 1px solid #0a246a;
+  border-radius: 0 8px 0 0;
+  box-shadow: 3px -3px 8px rgba(0,0,0,0.4);
   z-index: 20000;
-  min-width: 200px;
+  min-width: 240px;
+  overflow: hidden;
 }
 
 /* Linke Sidebar mit Schriftzug */
 .win95-startmenu-sidebar {
-  width: 24px;
-  background: linear-gradient(to top, #000080, #1084d0);
+  width: 28px;
+  background: linear-gradient(to top, #0a246a, #3a7bd5);
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   flex-shrink: 0;
 }
 
@@ -296,10 +351,10 @@
   font-family: var(--font-sys);
   font-size: 14px;
   font-weight: bold;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.9);
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   white-space: nowrap;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
@@ -310,6 +365,7 @@
   display: flex;
   flex-direction: column;
   padding: 4px 0;
+  background: var(--xp-gray);
 }
 
 .win95-startmenu-section {
@@ -325,18 +381,18 @@
   cursor: pointer;
   font-family: var(--font-sys);
   font-size: 12px;
-  color: var(--w95-black);
+  color: var(--xp-black);
   white-space: nowrap;
 }
 
 .win95-startmenu-item:hover {
-  background: var(--w95-titlebar);
-  color: var(--w95-white);
+  background: var(--xp-selection);
+  color: var(--xp-selection-text);
 }
 
 .win95-startmenu-item-icon {
-  font-size: 16px;
-  width: 20px;
+  font-size: 18px;
+  width: 22px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -347,43 +403,51 @@
 
 .win95-startmenu-divider {
   height: 1px;
-  background: var(--w95-gray-dark);
+  background: var(--xp-btn-shadow);
   margin: 4px 4px;
-  box-shadow: 0 1px 0 var(--w95-white);
+  box-shadow: 0 1px 0 var(--xp-white);
 }
 
-/* ─── Fenster-Rahmen (Win95-Stil) ────────────────────────────────────────────*/
+/* ─── Fenster-Rahmen (XP Luna Blue) ──────────────────────────────────────────*/
 .gov-window {
   position: absolute;
-  min-width: 280px;
-  min-height: 120px;
-  background: var(--w95-gray);
-  border: 2px solid;
-  border-color: var(--w95-white) var(--w95-gray-dark) var(--w95-gray-dark) var(--w95-white);
-  box-shadow: 2px 2px 0 var(--w95-black);
+  min-width: 300px;
+  min-height: 140px;
+  background: var(--xp-gray);
+  border: 1px solid #0a246a;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 3px 3px 8px rgba(0,0,0,0.4);
   font-family: var(--font-sys);
   font-size: 11px;
+  overflow: hidden;
 }
 
 .gov-window-titlebar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(to right, #000080, #1084d0);
-  padding: 3px 4px;
+  background: linear-gradient(to bottom,
+    #4a8fe8 0%,
+    #2060c8 4%,
+    #1a52b8 50%,
+    #0e3a9a 51%,
+    #1a52b8 100%
+  );
+  padding: 4px 6px;
   cursor: grab;
   user-select: none;
-  height: 20px;
+  height: 26px;
+  border-radius: 7px 7px 0 0;
 }
 
 .gov-window-titlebar:active { cursor: grabbing; }
 
 .gov-window-title {
   font-family: var(--font-sys);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: bold;
-  color: var(--w95-white);
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -392,18 +456,18 @@
 
 .gov-window-buttons {
   display: flex;
-  gap: 2px;
+  gap: 3px;
   flex-shrink: 0;
 }
 
+/* XP-Stil Fenster-Buttons */
 .gov-window-buttons button {
-  width: 16px;
-  height: 14px;
-  background: var(--w95-gray);
-  border: 1px solid;
-  border-color: var(--w95-white) var(--w95-gray-dark) var(--w95-gray-dark) var(--w95-white);
-  color: var(--w95-black);
-  font-size: 9px;
+  width: 21px;
+  height: 21px;
+  border-radius: 3px;
+  border: 1px solid rgba(0,0,0,0.4);
+  color: #ffffff;
+  font-size: 10px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -412,22 +476,40 @@
   padding: 0;
   font-family: 'Marlett', 'Wingdings', var(--font-sys);
   line-height: 1;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+}
+
+/* Minimieren */
+.gov-window-buttons button:nth-child(1) {
+  background: linear-gradient(to bottom, #6ab0f8 0%, #3a7bd5 50%, #2060c8 100%);
+}
+/* Maximieren */
+.gov-window-buttons button:nth-child(2) {
+  background: linear-gradient(to bottom, #6ab0f8 0%, #3a7bd5 50%, #2060c8 100%);
+}
+/* Schließen */
+.gov-window-buttons button:nth-child(3) {
+  background: linear-gradient(to bottom, #f87070 0%, #e03030 50%, #c82020 100%);
+}
+
+.gov-window-buttons button:hover {
+  filter: brightness(1.15);
 }
 
 .gov-window-buttons button:active {
-  border-color: var(--w95-gray-dark) var(--w95-white) var(--w95-white) var(--w95-gray-dark);
+  filter: brightness(0.85);
 }
 
 .gov-window-content {
   padding: 8px;
   font-size: 11px;
   min-height: 60px;
-  background: var(--w95-gray);
+  background: var(--xp-gray);
   overflow: auto;
   max-height: calc(100vh - 120px);
 }
 
-/* ─── Modals ─────────────────────────────────────────────────────────────────*/
+/* ─── Modals (XP-Stil) ───────────────────────────────────────────────────────*/
 .win95-modal-bg {
   position: fixed;
   inset: 0;
@@ -439,38 +521,47 @@
 }
 
 .win95-modal {
-  background: var(--w95-gray);
-  border: 2px solid;
-  border-color: var(--w95-white) var(--w95-gray-dark) var(--w95-gray-dark) var(--w95-white);
-  box-shadow: 2px 2px 0 var(--w95-black);
-  min-width: 300px;
-  max-width: 420px;
+  background: var(--xp-gray);
+  border: 1px solid #0a246a;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 3px 3px 8px rgba(0,0,0,0.4);
+  min-width: 320px;
+  max-width: 440px;
   font-family: var(--font-sys);
+  overflow: hidden;
 }
 
 .win95-modal-titlebar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(to right, #000080, #1084d0);
-  padding: 3px 4px;
-  height: 20px;
+  background: linear-gradient(to bottom,
+    #4a8fe8 0%,
+    #2060c8 4%,
+    #1a52b8 50%,
+    #0e3a9a 51%,
+    #1a52b8 100%
+  );
+  padding: 4px 6px;
+  height: 26px;
+  border-radius: 7px 7px 0 0;
 }
 
 .win95-modal-titlebar span {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: bold;
-  color: var(--w95-white);
+  color: #ffffff;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
 }
 
 .win95-modal-titlebar button {
-  width: 16px;
-  height: 14px;
-  background: var(--w95-gray);
-  border: 1px solid;
-  border-color: var(--w95-white) var(--w95-gray-dark) var(--w95-gray-dark) var(--w95-white);
-  color: var(--w95-black);
-  font-size: 9px;
+  width: 21px;
+  height: 21px;
+  background: linear-gradient(to bottom, #f87070 0%, #e03030 50%, #c82020 100%);
+  border: 1px solid rgba(0,0,0,0.4);
+  border-radius: 3px;
+  color: #ffffff;
+  font-size: 10px;
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -483,16 +574,17 @@
   align-items: flex-start;
   gap: 12px;
   padding: 16px;
+  background: var(--xp-gray);
 }
 
 .win95-modal-icon {
-  font-size: 28px;
+  font-size: 32px;
   flex-shrink: 0;
 }
 
 .win95-modal-text {
   font-size: 12px;
-  color: var(--w95-black);
+  color: var(--xp-black);
   line-height: 1.5;
 }
 
@@ -501,69 +593,88 @@
   gap: 8px;
   justify-content: flex-end;
   padding: 8px 16px 12px;
+  background: var(--xp-gray);
 }
 
 .win95-btn {
-  min-width: 75px;
+  min-width: 80px;
   height: 23px;
-  background: var(--w95-gray);
-  border: 2px solid;
-  border-color: var(--w95-white) var(--w95-gray-dark) var(--w95-gray-dark) var(--w95-white);
-  color: var(--w95-black);
+  padding: 0 12px;
+  background: linear-gradient(to bottom,
+    #f5f4ea 0%,
+    #ece9d8 50%,
+    #ddd9c4 100%
+  );
+  border: 1px solid #aca899;
+  border-radius: 3px;
+  cursor: pointer;
   font-family: var(--font-sys);
   font-size: 11px;
-  cursor: pointer;
-  padding: 0 8px;
+  color: var(--xp-black);
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.win95-btn:hover {
+  background: linear-gradient(to bottom,
+    #e8f0ff 0%,
+    #d8e8ff 50%,
+    #c8d8ef 100%
+  );
+  border-color: #316ac5;
 }
 
 .win95-btn:active {
-  border-color: var(--w95-gray-dark) var(--w95-white) var(--w95-white) var(--w95-gray-dark);
-}
-
-.win95-btn:focus {
-  outline: 1px dotted var(--w95-black);
-  outline-offset: -4px;
+  background: linear-gradient(to bottom,
+    #ddd9c4 0%,
+    #ece9d8 100%
+  );
+  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2);
 }
 
 /* ─── Suche-Fenster ──────────────────────────────────────────────────────────*/
 .search-window {
-  width: 480px;
-  min-height: 360px;
-  font-family: var(--font-sys);
-  font-size: 11px;
   display: flex;
   flex-direction: column;
-  padding: 0;
+  min-width: 480px;
+  min-height: 360px;
+  background: var(--xp-gray);
+  font-family: var(--font-sys);
+  font-size: 11px;
 }
 
 .search-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px 8px;
-  background: var(--w95-gray-light);
-  border-bottom: 1px solid var(--w95-gray-dark);
+  padding: 10px 12px;
+  background: linear-gradient(to right, #d4e8ff, #f0f8ff);
+  border-bottom: 1px solid #aca899;
 }
 
 .search-icon-big {
   font-size: 28px;
 }
 
+.search-header-text {
+  display: flex;
+  flex-direction: column;
+}
+
 .search-title {
   font-size: 14px;
   font-weight: bold;
-  color: var(--w95-black);
+  color: #0a246a;
 }
 
 .search-subtitle {
   font-size: 11px;
-  color: var(--w95-gray-dark);
+  color: #555;
 }
 
 .search-divider {
   height: 1px;
-  background: var(--w95-gray-dark);
-  box-shadow: 0 1px 0 var(--w95-white);
+  background: #aca899;
+  box-shadow: 0 1px 0 #ffffff;
   margin: 0;
 }
 
@@ -572,13 +683,13 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: var(--w95-gray);
+  background: var(--xp-gray);
 }
 
 .search-label {
   font-size: 11px;
-  color: var(--w95-black);
-  margin-bottom: 2px;
+  color: #000;
+  font-weight: bold;
 }
 
 .search-input-row {
@@ -588,95 +699,108 @@
 
 .search-input {
   flex: 1;
-  height: 20px;
-  background: var(--w95-white);
-  border: 2px solid;
-  border-color: var(--w95-gray-dark) var(--w95-white) var(--w95-white) var(--w95-gray-dark);
+  height: 21px;
+  padding: 0 4px;
+  border: 1px solid #7f9db9;
+  background: #ffffff;
   font-family: var(--font-sys);
   font-size: 11px;
-  padding: 0 4px;
-  color: var(--w95-black);
   outline: none;
 }
 
 .search-input:focus {
-  outline: 1px dotted var(--w95-black);
-  outline-offset: -2px;
+  border-color: #316ac5;
 }
 
 .search-btn {
-  min-width: 75px;
   height: 23px;
-  background: var(--w95-gray);
-  border: 2px solid;
-  border-color: var(--w95-white) var(--w95-gray-dark) var(--w95-gray-dark) var(--w95-white);
+  padding: 0 12px;
+  background: linear-gradient(to bottom, #f5f4ea 0%, #ece9d8 50%, #ddd9c4 100%);
+  border: 1px solid #aca899;
+  border-radius: 3px;
+  cursor: pointer;
   font-family: var(--font-sys);
   font-size: 11px;
-  cursor: pointer;
-  color: var(--w95-black);
-  flex-shrink: 0;
+  color: #000;
+  white-space: nowrap;
 }
 
-.search-btn:active {
-  border-color: var(--w95-gray-dark) var(--w95-white) var(--w95-white) var(--w95-gray-dark);
+.search-btn:hover {
+  background: linear-gradient(to bottom, #e8f0ff 0%, #d8e8ff 50%, #c8d8ef 100%);
+  border-color: #316ac5;
 }
 
 .search-btn:disabled {
-  color: var(--w95-gray-dark);
+  opacity: 0.6;
   cursor: default;
 }
 
 .search-results-area {
   flex: 1;
   padding: 8px 12px;
-  min-height: 160px;
-  background: var(--w95-gray);
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #aca899;
+  margin: 0 12px 8px;
+  min-height: 180px;
+}
+
+.search-status {
+  color: #555;
+  font-size: 11px;
+  padding: 8px 0;
+}
+
+.search-dots::after {
+  content: '';
+  animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+  0%   { content: ''; }
+  33%  { content: '.'; }
+  66%  { content: '..'; }
+  100% { content: '...'; }
 }
 
 .search-results-header {
   display: flex;
-  gap: 0;
-  background: var(--w95-gray-light);
-  border: 1px solid var(--w95-gray-dark);
-  padding: 2px 4px;
-  font-size: 11px;
+  gap: 8px;
+  padding: 3px 4px;
+  background: #ece9d8;
+  border-bottom: 1px solid #aca899;
   font-weight: bold;
-  color: var(--w95-black);
-  margin-bottom: 0;
+  font-size: 11px;
+  margin-bottom: 2px;
 }
 
 .search-results-list {
-  border: 2px solid;
-  border-color: var(--w95-gray-dark) var(--w95-white) var(--w95-white) var(--w95-gray-dark);
-  background: var(--w95-white);
-  max-height: 180px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .search-result-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 2px 4px;
+  cursor: pointer;
   font-size: 11px;
-  color: var(--w95-black);
-  border-bottom: 1px solid #e8e8e8;
-  cursor: default;
 }
 
 .search-result-row:hover {
-  background: var(--w95-titlebar);
-  color: var(--w95-white);
+  background: var(--xp-selection);
+  color: var(--xp-selection-text);
 }
 
 .search-result-icon {
-  font-size: 13px;
+  font-size: 14px;
   flex-shrink: 0;
 }
 
 .search-col-name {
-  min-width: 120px;
-  font-size: 11px;
+  min-width: 140px;
+  flex-shrink: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -684,91 +808,137 @@
 
 .search-col-type {
   min-width: 60px;
-  font-size: 11px;
-  color: var(--w95-gray-dark);
+  flex-shrink: 0;
+  color: #555;
 }
 
 .search-col-path {
-  font-size: 10px;
-  color: var(--w95-gray-dark);
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'Courier New', monospace;
+  color: #333;
+  font-size: 10px;
 }
 
-.search-result-row:hover .search-col-type,
-.search-result-row:hover .search-col-path {
-  color: rgba(255,255,255,0.8);
-}
-
-.search-status {
+.search-count {
+  margin-top: 6px;
   font-size: 11px;
-  color: var(--w95-gray-dark);
+  color: #555;
+  border-top: 1px solid #aca899;
+  padding-top: 4px;
+}
+
+.search-hint {
+  color: #666;
+  font-size: 11px;
   padding: 8px 0;
   font-style: italic;
 }
 
-.search-hint {
+/* ─── Benutzer-Manager ───────────────────────────────────────────────────────*/
+.usermgr-window {
+  min-width: 580px;
+  min-height: 420px;
+  background: var(--xp-gray);
+  font-family: var(--font-sys);
   font-size: 11px;
-  color: var(--w95-gray-dark);
-  padding: 8px 0;
 }
 
-.search-count {
+/* ─── Explorer-Fenster ───────────────────────────────────────────────────────*/
+.explorer-window {
+  min-width: 600px;
+  min-height: 420px;
+  background: var(--xp-white);
+  font-family: var(--font-sys);
   font-size: 11px;
-  color: var(--w95-gray-dark);
-  padding: 4px 0 0;
 }
 
-.search-dots {
-  display: inline-block;
-  animation: searchDots 1s step-end infinite;
+/* ─── Scrollbar (XP-Stil) ────────────────────────────────────────────────────*/
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
 }
 
-@keyframes searchDots {
-  0%   { content: ''; }
-  33%  { opacity: 0.3; }
-  66%  { opacity: 0.6; }
-  100% { opacity: 1; }
+::-webkit-scrollbar-track {
+  background: #f0ede0;
+  border: 1px solid #aca899;
 }
 
-/* ─── Alte gov-window Klassen kompatibel halten ──────────────────────────────*/
-.gov-window[data-terminal="true"] {
-  background: transparent;
-  border: none;
-  box-shadow: none;
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #e8e4d4 0%, #d8d4c4 50%, #c8c4b4 100%);
+  border: 1px solid #aca899;
+  border-radius: 2px;
 }
 
-/* ─── Scrollbar Win95-Stil ───────────────────────────────────────────────────*/
-.gov-window-content::-webkit-scrollbar,
-.search-results-list::-webkit-scrollbar {
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #d8e8ff 0%, #c8d8ef 50%, #b8c8df 100%);
+}
+
+::-webkit-scrollbar-button {
+  background: linear-gradient(to bottom, #f5f4ea 0%, #ece9d8 50%, #ddd9c4 100%);
+  border: 1px solid #aca899;
+  height: 16px;
   width: 16px;
 }
 
-.gov-window-content::-webkit-scrollbar-track,
-.search-results-list::-webkit-scrollbar-track {
-  background: var(--w95-gray);
-  border: 1px solid var(--w95-gray-dark);
+/* ─── Kontextmenü ────────────────────────────────────────────────────────────*/
+.context-menu {
+  position: fixed;
+  background: var(--xp-gray);
+  border: 1px solid #aca899;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  z-index: 50000;
+  min-width: 160px;
+  padding: 2px 0;
+  font-family: var(--font-sys);
+  font-size: 12px;
 }
 
-.gov-window-content::-webkit-scrollbar-thumb,
-.search-results-list::-webkit-scrollbar-thumb {
-  background: var(--w95-gray);
-  border: 2px solid;
-  border-color: var(--w95-white) var(--w95-gray-dark) var(--w95-gray-dark) var(--w95-white);
+.context-menu-item {
+  padding: 4px 20px;
+  cursor: pointer;
+  color: #000;
 }
 
-/* ─── Responsive ─────────────────────────────────────────────────────────────*/
-@media (max-width: 600px) {
-  .win95-taskbar-btn-label {
-    display: none;
-  }
-  .win95-taskbar-btn {
-    min-width: 30px;
-    max-width: 40px;
-  }
-  .win95-startmenu-sidebar-text {
-    font-size: 11px;
-  }
+.context-menu-item:hover {
+  background: var(--xp-selection);
+  color: var(--xp-selection-text);
+}
+
+.context-menu-separator {
+  height: 1px;
+  background: #aca899;
+  margin: 2px 4px;
+  box-shadow: 0 1px 0 #ffffff;
+}
+
+/* ─── Benachrichtigungs-Toast ─────────────────────────────────────────────────*/
+.xp-notification {
+  position: fixed;
+  bottom: 36px;
+  right: 8px;
+  background: #ffffc0;
+  border: 1px solid #c8a000;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: var(--font-sys);
+  font-size: 11px;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  z-index: 40000;
+  max-width: 240px;
+}
+
+/* ─── Shutdown-Screen ────────────────────────────────────────────────────────*/
+.xp-shutdown-screen {
+  background: #000;
+  color: #c8c8c8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.1rem;
+  font-family: 'Tahoma', 'Arial', sans-serif;
+  flex-direction: column;
+  gap: 16px;
 }

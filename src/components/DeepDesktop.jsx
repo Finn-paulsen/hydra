@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import './DeepDesktop.css';
 import TerminalIcon from '@mui/icons-material/Terminal';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -7,14 +7,20 @@ import PersonIcon from '@mui/icons-material/Person';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import LanIcon from '@mui/icons-material/Lan';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import HubIcon from '@mui/icons-material/Hub';
 import ReactorControl from './ReactorControl';
 import ExploitLab from './ExploitLab';
 import SatelliteAccess from './SatelliteAccess';
 import SystemSettings from './SystemSettings';
 import UserManager from './UserManager';
 import FileExplorer from './FileExplorer';
+import SurveillanceCenter from './SurveillanceCenter';
+import HiveMindArchive from './HiveMindArchive';
 
 const DEEP_PROGRAMS = [
+  { name: "CCTV-Überwachung", icon: <VideocamIcon fontSize="large" />, type: 'surveillance' },
+  { name: "HIVE-MIND Archiv", icon: <HubIcon fontSize="large" />, type: 'hivemind' },
   { name: "HIVE-MIND Reaktor", icon: <AssessmentIcon fontSize="large" />, type: 'reactor' },
   { name: "Exploit Lab", icon: <TerminalIcon fontSize="large" />, type: 'exploit' },
   { name: "Sateliten-Zugriff", icon: <LanIcon fontSize="large" />, type: 'satellite' },
@@ -137,8 +143,7 @@ export default function DeepDesktop({ onLogout }) {
 
   function handleLogin(e) {
     e.preventDefault();
-    // Simulierter Zugang
-      if (isDeepValidCredential(user, pass)) {
+    if (isDeepValidCredential(user, pass)) {
       setLoggedIn(true);
       setError("");
     } else {
@@ -149,35 +154,35 @@ export default function DeepDesktop({ onLogout }) {
   if (!loggedIn) {
     return (
       <div className="deep-login-bg">
-          <form className="deep-login-form" onSubmit={handleLogin}>
-            <pre className="deep-login-banner">
-  {`
+        <form className="deep-login-form" onSubmit={handleLogin}>
+          <pre className="deep-login-banner">
+{`
   ------------------------------------------------------------
     Internes Anmeldemodul (AuthGate/BA-III)  [Build 2.14.7]
     Referenz: BA-INT-SEC-2003/17
     Terminalzugriff wird nicht aktiv unterstützt.
     Protokollierung aktiviert. [VS-NfD]
   ------------------------------------------------------------
-  `}
-            </pre>
-            <div className="deep-login-title">Dienstkontenverwaltung – Anmeldung erforderlich</div>
-            <input
-              type="text"
-              placeholder="Benutzername"
-              value={user}
-              onChange={e => setUser(e.target.value)}
-              autoFocus
-            />
-            <input
-              type="password"
-              placeholder="Zugangscode"
-              value={pass}
-              onChange={e => setPass(e.target.value)}
-            />
-            <button type="submit">Anmelden</button>
-            {error && <div className="deep-login-error">{error}</div>}
-          </form>
-        </div>
+`}
+          </pre>
+          <div className="deep-login-title">Dienstkontenverwaltung – Anmeldung erforderlich</div>
+          <input
+            type="text"
+            placeholder="Benutzername"
+            value={user}
+            onChange={e => setUser(e.target.value)}
+            autoFocus
+          />
+          <input
+            type="password"
+            placeholder="Zugangscode"
+            value={pass}
+            onChange={e => setPass(e.target.value)}
+          />
+          <button type="submit">Anmelden</button>
+          {error && <div className="deep-login-error">{error}</div>}
+        </form>
+      </div>
     );
   }
 
@@ -186,9 +191,11 @@ export default function DeepDesktop({ onLogout }) {
       <div className="deep-program-view">
         <div className="deep-program-header">
           <h2>{activeProgram.name}</h2>
-          <button className="back-btn" onClick={() => setActiveProgram(null)}>← BACK</button>
+          <button className="back-btn" onClick={() => setActiveProgram(null)}>← ZURÜCK</button>
         </div>
         <div className="deep-program-content">
+          {activeProgram.type === 'surveillance' && <SurveillanceCenter />}
+          {activeProgram.type === 'hivemind' && <HiveMindArchive />}
           {activeProgram.type === 'reactor' && <ReactorControl />}
           {activeProgram.type === 'exploit' && <ExploitLab />}
           {activeProgram.type === 'satellite' && <SatelliteAccess />}
@@ -204,7 +211,7 @@ export default function DeepDesktop({ onLogout }) {
 
   return (
     <div className="deep-desktop-bg">
-      <div className="deep-desktop-header">STRIKT GEHEIME SCHICHT - Bundesarchiv</div>
+      <div className="deep-desktop-header">STRIKT GEHEIME SCHICHT – Bundesarchiv [BA-III]</div>
       <div className="deep-desktop-icons">
         {DEEP_PROGRAMS.map(p => (
           <div className="deep-desktop-icon" key={p.name} onClick={() => setActiveProgram(p)}>
@@ -215,7 +222,7 @@ export default function DeepDesktop({ onLogout }) {
       </div>
       <div className="deep-taskbar">
         <button className="deep-taskbar-logout" onClick={onLogout}>Logout</button>
-        <span className="deep-taskbar-label">Clearance: STRENG GEHEIM</span>
+        <span className="deep-taskbar-label">Clearance: STRENG GEHEIM  |  BA-III  |  AuthGate aktiv</span>
       </div>
     </div>
   );
