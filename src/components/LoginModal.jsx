@@ -5,14 +5,19 @@ import localforage from 'localforage'
 import { useUserProfile } from '../hooks/useUserProfile'
 import './LoginModal.css'
 
+// Benutzer mit Rollen und Zugriffsrechten
 const VALID_CREDENTIALS = [
-  { user: 'demo',  pass: 'demo'  },
-  { user: 'test',  pass: 'test'  },
-  { user: 'admin', pass: 'admin' },
+  { user: 'demo',  pass: 'demo',  role: 'user',  permissions: ['read'],                          displayName: 'Demo-Benutzer',  clearance: 'STUFE I'   },
+  { user: 'test',  pass: 'test',  role: 'user',  permissions: ['read', 'write'],                  displayName: 'Test-Benutzer',  clearance: 'STUFE II'  },
+  { user: 'admin', pass: 'admin', role: 'admin', permissions: ['read', 'write', 'delete', 'manage'], displayName: 'Administrator', clearance: 'STUFE IV'  },
 ]
 
 function isValidCredential(u, p) {
   return VALID_CREDENTIALS.some(e => e.user === u && e.pass === p)
+}
+
+function getCredential(u, p) {
+  return VALID_CREDENTIALS.find(e => e.user === u && e.pass === p) || null
 }
 
 // ─── Audio Engine ─────────────────────────────────────────────────────────────
@@ -630,13 +635,33 @@ export default function LoginModal({ onSuccess }) {
 
     const ts = new Date().toISOString()
     const valid = isValidCredential(user, pass)
+    const cred = getCredential(user, pass)
 
-    if (valid) {
+    if (valid && cred) {
       setMessage('ZUGANGSDATEN BESTÄTIGT')
       playSuccessChime()
       if (setLoginUser) {
-        await setLoginUser({ username: user, loginTime: ts, sessionId: sessionId.current, isLoggedIn: true })
+        await setLoginUser({
+          username: user,
+          displayName: cred.displayName,
+          role: cred.role,
+          permissions: cred.permissions,
+          clearance: cred.clearance,
+          loginTime: ts,
+          sessionId: sessionId.current,
+          isLoggedIn: true
+        })
       }
+      // Auch in localStorage für andere Komponenten
+      localStorage.setItem('gov_current_user', JSON.stringify({
+        username: user,
+        displayName: cred.displayName,
+        role: cred.role,
+        permissions: cred.permissions,
+        clearance: cred.clearance,
+        loginTime: ts,
+        isLoggedIn: true
+      }))
       await writeAudit({ ts, user, action: 'login', result: 'success', info: navigator.userAgent })
       await simulateDelay(900)
       setMessage('')
