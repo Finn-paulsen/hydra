@@ -26,7 +26,7 @@
     "leaflet": "^1.9.4",
     "localforage": "^1.10.0",
     "pino": "^10.3.0",
-    "react": "^18.3.1",
+    "react": "^19.2.7",
     "react-circular-progressbar": "^2.2.0",
     "react-console-emulator": "^5.0.2",
     "react-dom": "^18.3.1",
