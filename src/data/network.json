@@ -1,7 +1,0 @@
-// Automatisch generierbar mit faker.js
-// import { generateFakeNetwork } from '../utils/fakerDemo'
-// JSON.stringify(generateFakeNetwork(12), null, 2)
-{
-  "nodes": [],
-  "links": []
-}
