@@ -10,16 +10,16 @@
    Kein Grün. Kein Neon. Staubig, eingestaubt, jahrzehntealt.
    ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Amber-Phosphor Hauptfarben */
-  --amber:        #c8820a;
-  --amber-bright: #e8a020;
-  --amber-dim:    #7a4e06;
-  --amber-glow:   rgba(200, 130, 10, 0.14);
-  --amber-faint:  rgba(200, 130, 10, 0.06);
+  /* Kühles Phosphor-Blaugrau (Variablennamen historisch "amber") */
+  --amber:        #8fb4c8;
+  --amber-bright: #cfe6f2;
+  --amber-dim:    #3f5f70;
+  --amber-glow:   rgba(143, 180, 200, 0.14);
+  --amber-faint:  rgba(143, 180, 200, 0.06);
 
-  /* Hintergrund – sehr dunkles Graubraun, nicht reines Schwarz */
-  --bg-dark:      #0d0b08;
-  --bg-panel:     #111008;
+  /* Hintergrund – sehr dunkles Blaugrau, nicht reines Schwarz */
+  --bg-dark:      #080b0d;
+  --bg-panel:     #0b1013;
   --bg-scanline:  rgba(0, 0, 0, 0.22);
 
   /* Alarm-Farben – gedämpftes Rot, nicht grell */
@@ -147,13 +147,26 @@
   font-family: var(--font-mono);
   font-size: 12px;
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 40px;
   text-shadow: none;
   letter-spacing: 0.04em;
   flex-shrink: 0;
   margin-top: auto;
   border-top: 1px solid var(--amber-dim);
 }
+
+.retro-keybtn {
+  background: transparent;
+  border: none;
+  padding: 0 4px;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+.retro-keybtn:hover { background: var(--bg-dark); color: var(--amber-bright); }
+.retro-keybtn:focus-visible { outline: 1px dotted var(--bg-dark); }
 
 /* ─── Scrollbares Login-Panel ────────────────────────────────────────────────*/
 .retro-login-panel {
@@ -376,7 +389,7 @@
   margin-top: 6px;
   padding: 6px 8px;
   border: 1px solid var(--amber-dim);
-  background: rgba(200, 130, 10, 0.04);
+  background: rgba(143, 180, 200, 0.04);
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.6;
@@ -965,7 +978,7 @@
   inset: 0;
   background: radial-gradient(
     ellipse at 50% 38%,
-    rgba(200, 130, 10, 0.035) 0%,
+    rgba(143, 180, 200, 0.035) 0%,
     transparent 65%
   );
   pointer-events: none;

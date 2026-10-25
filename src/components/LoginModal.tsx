@@ -103,42 +103,6 @@ function playSuccessChime() {
 
 function playPolicyBeep() { playTone(400, 50, 'square', 0.03) }
 
-// ─── Boot-Sequenz Zeilen ──────────────────────────────────────────────────────
-// Statische Zeilen in zwei Blöcken
-const BOOT_LINES_STATIC_PRE = [
-  { text: '', delay: 400 },
-  { text: 'SIEMENS NIXDORF PCD-4H  BIOS v2.07  (C) 1994', delay: 800 },
-  { text: 'COPYRIGHT (C) SIEMENS NIXDORF INFORMATIONSSYSTEME AG, 1987-1994', delay: 1200 },
-  { text: '', delay: 600 },
-  { text: 'BIOS-DATUM: 14.03.1994  SERIENNUMMER: SN-4H-0038471', delay: 1800 },
-  { text: '', delay: 400 },
-  { text: 'SPEICHERTEST LÄUFT', delay: 3600 },
-  { text: 'BIOS-ERWEITERUNG: SCSI-CONTROLLER  IRQ=11  I/O=0x330  OK', delay: 2400 },
-  { text: 'BIOS-ERWEITERUNG: VGA-BIOS  CIRRUS LOGIC  v1.62  OK', delay: 1800 },
-  { text: '', delay: 500 },
-  { text: 'FESTPLATTEN-CONTROLLER: IDE  IRQ=14  I/O=0x1F0', delay: 2200 },
-  { text: 'FESTPLATTE 0:  SEAGATE ST-31200N  1.2 GB  [CHS=2484/16/63]  OK', delay: 3400 },
-  { text: 'FESTPLATTE 1:  NICHT VORHANDEN', delay: 1200 },
-  { text: 'CD-ROM-LAUFWERK:  NEC CDR-260  [ATAPI]  OK', delay: 1800 },
-  { text: '', delay: 400 },
-]
-
-const BOOT_LINES_STATIC_POST = [
-  { text: 'NETZWERKADAPTER: 3COM ETHERLINK III  IRQ=10  I/O=0x300  DMA=3', delay: 2800 },
-  { text: 'MAC-ADRESSE: WIRD GELESEN...', delay: 2200 },
-  { text: 'PROTOKOLL-STACK: TCP/IP v3.11  IPX/SPX v2.0  NETBIOS  GELADEN', delay: 2600 },
-  { text: 'SICHERHEITSMODUL: REV.7  SIGNATURPRÜFUNG...', delay: 3200 },
-  { text: 'SICHERHEITSMODUL: SIGNATUR OK  INITIALISIERT', delay: 2000 },
-  { text: 'VERSCHLÜSSELUNG: DES-56  SCHLÜSSELAUSTAUSCH...', delay: 2800 },
-  { text: 'VERSCHLÜSSELUNG: AKTIV  SITZUNGSSCHLÜSSEL GENERIERT', delay: 2200 },
-  { text: '──────────────────────────────────────────────────────', delay: 800 },
-  { text: 'VERBINDUNGSAUFBAU ZUM ZENTRALRECHNER...', delay: 3600 },
-  { text: 'ROUTE: 192.168.1.1  HOP: 1  LATENZ: 847ms', delay: 2800 },
-  { text: 'AUTHENTIFIZIERUNGSSERVER: 192.168.1.1  ANTWORTET', delay: 2400 },
-  { text: 'SITZUNGSPROTOKOLL AKTIV  –  ALLE ZUGRIFFE WERDEN ERFASST', delay: 1800 },
-  { text: '──────────────────────────────────────────────────────', delay: 600 },
-]
-
 // ─── Verbindungsfehler ────────────────────────────────────────────────────────
 const CONNECTION_ERRORS = [
   { code: 'ERR_TIMEOUT_7F',      msg: 'VERBINDUNGS-TIMEOUT – ZENTRALRECHNER NICHT ERREICHBAR' },
@@ -385,8 +349,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
   const [message, setMessage]         = useState('')
   const [failCount, setFailCount]     = useState(0)
   const [lockdown, setLockdown]       = useState(false)
-  const [bootDone, setBootDone]       = useState(false)
-  const [bootLines, setBootLines]     = useState<string[]>([])
+  const [showPass, setShowPass]       = useState(false)
   const [now, setNow]                 = useState(new Date())
   const [glitch, setGlitch]           = useState(false)
   const [alarmPhase, setAlarmPhase]   = useState(0)
@@ -414,39 +377,36 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
     return () => clearInterval(t)
   }, [])
 
-  // Boot-Sequenz
+  // Fokus direkt auf das Benutzerfeld
   useEffect(() => {
-    let cancelled = false
-
-    async function runBoot() {
-      // Statische Zeilen zuerst
-      for (const item of BOOT_LINES_STATIC_PRE) {
-        if (cancelled) return
-        await new Promise(r => setTimeout(r, item.delay + Math.random() * 400))
-        if (cancelled) return
-        setBootLines(prev => [...prev, item.text])
-        playTone(420 + Math.random() * 80, 22, 'square', 0.015)
-      }
-
-      // Statische Zeilen danach
-      for (const item of BOOT_LINES_STATIC_POST) {
-        if (cancelled) return
-        await new Promise(r => setTimeout(r, item.delay + Math.random() * 500))
-        if (cancelled) return
-        setBootLines(prev => [...prev, item.text])
-        playTone(420 + Math.random() * 80, 22, 'square', 0.015)
-      }
-
-      if (!cancelled) {
-        await new Promise(r => setTimeout(r, 800))
-        setBootDone(true)
-        setTimeout(() => { if (userRef.current) userRef.current.focus() }, 200)
-      }
-    }
-
-    setTimeout(runBoot, 500)
-    return () => { cancelled = true }
+    userRef.current?.focus()
   }, [])
+
+  // Eingaben leeren (ESC / F3)
+  function clearFields() {
+    setUser('')
+    setPass('')
+    setMessage('')
+    userRef.current?.focus()
+  }
+
+  // Testzugang eintragen (F2)
+  function fillTestLogin() {
+    setUser('Mike')
+    setPass('12345')
+  }
+
+  // Funktionstasten der unteren Leiste
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (busy || lockdown || policyStarted) return
+      if (e.key === 'F2') { e.preventDefault(); setShowPass(s => !s) }
+      else if (e.key === 'F3') { e.preventDefault(); fillTestLogin() }
+      else if (e.key === 'Escape') { e.preventDefault(); clearFields() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [busy, lockdown, policyStarted])
 
   // Cleanup
   useEffect(() => {
@@ -459,7 +419,6 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
 
   // Gelegentliche Glitch-Effekte
   useEffect(() => {
-    if (!bootDone) return
     const t = setInterval(() => {
       if (Math.random() < 0.05) {
         setGlitch(true)
@@ -467,7 +426,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
       }
     }, 4000)
     return () => clearInterval(t)
-  }, [bootDone])
+  }, [])
 
   // Policy-Sequenz (läuft nach erfolgreichem Login – genau einmal)
   // policyStarted wechselt nur einmal von false auf true → Effect wird genau einmal ausgeführt
@@ -638,21 +597,6 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
     }
   }
 
-  // ─── BOOT SCREEN ──────────────────────────────────────────────────────────────
-  if (!bootDone) {
-    return (
-      <div className="retro-screen">
-        <div className="crt-overlay" />
-        <div className="retro-boot">
-          {bootLines.map((line, i) => (
-            <div key={i} className="retro-boot-line">{line}</div>
-          ))}
-          <span className="crt-cursor">_</span>
-        </div>
-      </div>
-    )
-  }
-
   // ─── GROUP POLICY SCREEN ───────────────────────────────────────────────────────
   if (policyStarted) {
     const safePhase = Math.max(0, Math.min(policyPhase, POLICY_STEPS.length - 1))
@@ -798,7 +742,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
     <div className={'retro-screen' + (glitch ? ' retro-glitch' : '')}>
       <div className="crt-overlay" />
       <div className="retro-statusbar">
-        <span>SICHERHEITSTERMINAL  v4.1</span>
+        <span />
         <span className="retro-clock">{format(now, 'dd.MM.yyyy  HH:mm:ss')}</span>
       </div>
 
@@ -858,7 +802,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
             <label className="retro-label" htmlFor="r-pass">KENNWORT&nbsp;&nbsp;:</label>
             <input
               id="r-pass"
-              type="password"
+              type={showPass ? 'text' : 'password'}
               className="retro-input"
               value={pass}
               onChange={e => { setPass(e.target.value); playKeyClick() }}
@@ -896,18 +840,14 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
         </div>
 
         <div className="retro-divider" style={{ marginTop: '6px' }}>{'─'.repeat(44)}</div>
-
-        <div className="retro-footer">
-          <div>SIEMENS NIXDORF  •  v4.1  •  1994</div>
-          <div>SUPPORT: 0228-99-0  •  NOTFALL: 0228-99-1</div>
-        </div>
       </div>
 
       <div className="retro-bottombar">
-        <span>F1=HILFE</span>
-        <span>F5=NEUSTART</span>
-        <span>ESC=ABBRUCH</span>
-        <span className="retro-blink-slow">■ ONLINE</span>
+        <button type="button" className="retro-keybtn" onClick={() => setShowPass(s => !s)}>
+          F2={showPass ? 'KENNWORT VERBERGEN' : 'KENNWORT ZEIGEN'}
+        </button>
+        <button type="button" className="retro-keybtn" onClick={fillTestLogin}>F3=TESTZUGANG</button>
+        <button type="button" className="retro-keybtn" onClick={clearFields}>ESC=LEEREN</button>
       </div>
     </div>
   )
