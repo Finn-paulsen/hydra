@@ -7,13 +7,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { auditLogger, AuditSeverity } from '../services/AuditLogger';
 import './AuditLogBrowser.css';
 
+interface AuditLogBrowserEntry { id?: string | number; ts: string; action: string; user: string; info?: string | null; severity: string }
+interface AuditLogStats { totalEntries: number; entriesBySeverity: Record<string, number> }
+interface AuditLogFilters { eventType: string; severity: string; userId: string; dateRange: 'all' | '24h' | '7d' | '30d'; searchTerm: string }
+
 export default function AuditLogBrowser() {
-  const [logs, setLogs] = useState([]);
-  const [filteredLogs, setFilteredLogs] = useState([]);
+  const [logs, setLogs] = useState<AuditLogBrowserEntry[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<AuditLogBrowserEntry[]>([]);
   const [loading, setLoading] = useState(false);
   
   // Filter State
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<AuditLogFilters>({
     eventType: '',
     severity: '',
     userId: '',
@@ -21,9 +25,9 @@ export default function AuditLogBrowser() {
     searchTerm: ''
   });
 
-  const [selectedLog, setSelectedLog] = useState(null);
-  const [stats, setStats] = useState(null);
-  const tableRef = useRef(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLogBrowserEntry | null>(null);
+  const [stats, setStats] = useState<AuditLogStats | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Lade Logs beim Mount
   useEffect(() => {
@@ -69,7 +73,7 @@ export default function AuditLogBrowser() {
     // Date Range Filter
     if (filters.dateRange !== 'all') {
       const now = new Date();
-      let startDate;
+          let startDate: Date | null;
 
       switch (filters.dateRange) {
         case '24h':
@@ -103,7 +107,7 @@ export default function AuditLogBrowser() {
     setFilteredLogs(filtered);
   };
 
-  const getSeverityColor = (severity) => {
+  const getSeverityColor = (severity: string): string => {
     switch (severity) {
       case AuditSeverity.CRITICAL: return '#ff0000';
       case AuditSeverity.HIGH: return '#ff9900';
@@ -113,7 +117,7 @@ export default function AuditLogBrowser() {
     }
   };
 
-  const getSeverityLabel = (severity) => {
+  const getSeverityLabel = (severity: string): string => {
     switch (severity) {
       case AuditSeverity.CRITICAL: return 'KRITISCH';
       case AuditSeverity.HIGH: return 'HOCH';
@@ -216,7 +220,7 @@ export default function AuditLogBrowser() {
           <label>Zeitraum:</label>
           <select
             value={filters.dateRange}
-            onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
+            onChange={(e) => setFilters({ ...filters, dateRange: e.target.value as AuditLogFilters['dateRange'] })}
             className="filter-select"
           >
             <option value="all">Alle</option>
@@ -260,7 +264,7 @@ export default function AuditLogBrowser() {
           <tbody>
             {filteredLogs.length === 0 ? (
               <tr className="empty-row">
-                <td colSpan="6">Keine Einträge gefunden</td>
+                <td colSpan={6}>Keine Einträge gefunden</td>
               </tr>
             ) : (
               filteredLogs.map(log => (
@@ -285,7 +289,7 @@ export default function AuditLogBrowser() {
                     </span>
                   </td>
                   <td className="log-info">
-                    <span title={log.info}>{(log.info || '').substring(0, 50)}...</span>
+                    <span title={log.info ?? ''}>{(log.info || '').substring(0, 50)}...</span>
                   </td>
                   <td className="log-action-cell">
                     <button className="detail-btn">◀</button>

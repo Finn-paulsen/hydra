@@ -1,10 +1,17 @@
 // Echter Editor für Dateiinhalt mit Speichern
 import React, { useState } from 'react';
 
-export default function FileEditor({ name, content, onSave, onBack }) {
+interface FileEditorProps {
+  name?: string;
+  content?: string | null;
+  onSave?: (value: string) => void;
+  onBack?: () => void;
+}
+
+export default function FileEditor({ name, content, onSave, onBack }: FileEditorProps) {
   const [value, setValue] = useState(content || '');
 
-  function handleChange(e) {
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setValue(e.target.value);
   }
 

@@ -1,37 +1,43 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type FormEvent } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { format } from 'date-fns'
 import localforage from 'localforage'
 import { useUserProfile } from '../hooks/useUserProfile'
 import './LoginModal.css'
 
+interface Credential { user: string; pass: string; role: string; permissions: string[]; displayName: string; clearance: string }
+interface BootLine { text: string; delay: number }
+interface AlarmSequenceItem { leftMsg: string; cmdTitle: string; cmdLines: string[] }
+interface NetworkConnection { effectiveType?: string; downlink?: number }
+interface ExtendedNavigator extends Navigator { deviceMemory?: number; connection?: NetworkConnection; mozConnection?: NetworkConnection; webkitConnection?: NetworkConnection }
+
 // Benutzer mit Rollen und Zugriffsrechten
-const VALID_CREDENTIALS = [
+const VALID_CREDENTIALS: Credential[] = [
   { user: 'demo',  pass: 'demo',  role: 'user',  permissions: ['read'],                          displayName: 'Demo-Benutzer',  clearance: 'STUFE I'   },
   { user: 'test',  pass: 'test',  role: 'user',  permissions: ['read', 'write'],                  displayName: 'Test-Benutzer',  clearance: 'STUFE II'  },
   { user: 'admin', pass: 'admin', role: 'admin', permissions: ['read', 'write', 'delete', 'manage'], displayName: 'Administrator', clearance: 'STUFE IV'  },
 ]
 
-function isValidCredential(u, p) {
+function isValidCredential(u: string, p: string): boolean {
   return VALID_CREDENTIALS.some(e => e.user === u && e.pass === p)
 }
 
-function getCredential(u, p) {
+function getCredential(u: string, p: string): Credential | null {
   return VALID_CREDENTIALS.find(e => e.user === u && e.pass === p) || null
 }
 
 // ─── Audio Engine ─────────────────────────────────────────────────────────────
-let _audioCtx = null
+let _audioCtx: AudioContext | null = null
 function getAudioCtx() {
   if (typeof window === 'undefined') return null
-  const AC = window.AudioContext || window.webkitAudioContext
+  const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
   if (!AC) return null
   if (!_audioCtx) _audioCtx = new AC()
   if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(() => {})
   return _audioCtx
 }
 
-function playTone(freq, durationMs, type, volume, startDelay) {
+function playTone(freq: number, durationMs: number, type?: OscillatorType, volume?: number, startDelay?: number) {
   type = type || 'square'; volume = volume || 0.06; startDelay = startDelay || 0
   const ctx = getAudioCtx(); if (!ctx) return
   const osc = ctx.createOscillator(); const gain = ctx.createGain()
@@ -95,7 +101,7 @@ function playSuccessChime() {
 function playPolicyBeep() { playTone(400, 50, 'square', 0.03) }
 
 // ─── Echte PC-Ressourcen via Browser-APIs ─────────────────────────────────────
-async function detectHardware() {
+async function detectHardware(): Promise<BootLine[]> {
   const lines = []
 
   // CPU-Kerne
@@ -106,14 +112,15 @@ async function detectHardware() {
   lines.push({ text: 'PROZESSOR-KERNE: ' + cores + '  MODUS: PROTECTED  BUS: ISA/PCI', delay: 2200 })
 
   // RAM – navigator.deviceMemory (in GB, gerundet)
-  const ramGB = navigator.deviceMemory || 0.5
+  const ramGB = (navigator as ExtendedNavigator).deviceMemory || 0.5
   const ramMB = Math.round(ramGB * 1024)
   const ramDisplay = ramMB >= 1024 ? Math.round(ramMB / 1024) + ' GB' : ramMB + ' MB'
   lines.push({ text: 'SPEICHERTEST: ' + ramDisplay + ' GESAMT...', delay: 3200 })
   lines.push({ text: 'KONVENTIONELL: 640K  ERWEITERT (EMS): ' + (ramMB - 1) + ' MB  FREI: ' + Math.round(ramMB * 0.87) + ' MB', delay: 2600 })
 
   // Verbindungstyp
-  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+  const extendedNavigator = navigator as ExtendedNavigator
+  const conn = extendedNavigator.connection || extendedNavigator.mozConnection || extendedNavigator.webkitConnection
   let netType = 'UNBEKANNT'
   let netSpeed = '---'
   if (conn) {
@@ -217,7 +224,7 @@ const ALARM_MESSAGES = [
 
 // ─── Alarm-Sequenz: Linke Meldungen + synchrone CMD-Befehle ─────────────────
 // Jede Phase hat eine linke Meldung und passende CMD-Ausgabe rechts
-function buildAlarmSequence(sessionId) {
+function buildAlarmSequence(sessionId: string): AlarmSequenceItem[] {
   const ip = '192.168.' + (Math.floor(Math.random() * 5) + 1) + '.' + (Math.floor(Math.random() * 200) + 10)
   const mac = Array.from({length: 6}, () => Math.floor(Math.random()*256).toString(16).padStart(2,'0').toUpperCase()).join('-')
   const ts = new Date()
@@ -417,7 +424,9 @@ const POLICY_STEPS = [
   },
 ]
 
-export default function LoginModal({ onSuccess }) {
+interface LoginModalProps { onSuccess?: () => void }
+
+export default function LoginModal({ onSuccess }: LoginModalProps) {
   const [user, setUser]               = useState('')
   const [pass, setPass]               = useState('')
   const [busy, setBusy]               = useState(false)
@@ -425,25 +434,25 @@ export default function LoginModal({ onSuccess }) {
   const [failCount, setFailCount]     = useState(0)
   const [lockdown, setLockdown]       = useState(false)
   const [bootDone, setBootDone]       = useState(false)
-  const [bootLines, setBootLines]     = useState([])
+  const [bootLines, setBootLines]     = useState<string[]>([])
   const [now, setNow]                 = useState(new Date())
   const [glitch, setGlitch]           = useState(false)
   const [alarmPhase, setAlarmPhase]   = useState(0)
-  const [alarmLeftMsgs, setAlarmLeftMsgs] = useState([])
+  const [alarmLeftMsgs, setAlarmLeftMsgs] = useState<string[]>([])
   const [alarmCmdTitle, setAlarmCmdTitle] = useState('C:\\WINNT\\SYSTEM32\\CMD.EXE')
-  const [alarmCmdLines, setAlarmCmdLines] = useState([])
-  const [alarmSequence, setAlarmSequence] = useState([])
-  const [randomFailMsg, setRandomFailMsg] = useState(null)
+  const [alarmCmdLines, setAlarmCmdLines] = useState<string[]>([])
+  const [alarmSequence, setAlarmSequence] = useState<AlarmSequenceItem[]>([])
+  const [randomFailMsg, setRandomFailMsg] = useState<string | null>(null)
   const [policyStarted, setPolicyStarted] = useState(false)  // einmaliger Trigger
   const [policyPhase, setPolicyPhase] = useState(-1)
-  const [policyLines, setPolicyLines] = useState([])
+  const [policyLines, setPolicyLines] = useState<string[]>([])
   const [policyProgress, setPolicyProgress] = useState(0)
 
   const sessionId  = useRef(uuidv4())
-  const userRef    = useRef(null)
-  const alarmIntRef    = useRef(null)
-  const alarmTxtIntRef = useRef(null)
-  const cmdSwitchIntRef = useRef(null)
+  const userRef    = useRef<HTMLInputElement>(null)
+  const alarmIntRef    = useRef<ReturnType<typeof setInterval> | null>(null)
+  const alarmTxtIntRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const cmdSwitchIntRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const policyRunning  = useRef(false)
   const { setLoginUser } = useUserProfile()
 
@@ -558,12 +567,12 @@ export default function LoginModal({ onSuccess }) {
     return () => { cancelled = true }
   }, [policyStarted])
 
-  function simulateDelay(ms) { return new Promise(r => setTimeout(r, ms)) }
+  function simulateDelay(ms: number): Promise<void> { return new Promise(r => setTimeout(r, ms)) }
 
-  async function writeAudit(entry) {
+  async function writeAudit(entry: Record<string, string>) {
     try {
       const key = 'audit_log_v1'
-      const cur = (await localforage.getItem(key)) || []
+      const cur = (await localforage.getItem<Record<string, string>[]>(key)) || []
       cur.push(entry); await localforage.setItem(key, cur)
     } catch (e) {}
   }
@@ -603,7 +612,7 @@ export default function LoginModal({ onSuccess }) {
   }
 
   // ─── Login Handler ────────────────────────────────────────────────────────────
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (busy || lockdown) return
     getAudioCtx()

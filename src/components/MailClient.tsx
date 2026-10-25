@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import './MailClient.css';
-import { generateMailData } from '../utils/mailData';
+
+interface Mail { id: string; from: string; subject: string; date: string; body: string; attachments?: string[] }
 
 // Authentische Dummy-Mails für ein altes Regierungsterminal
 const mails = [
@@ -130,7 +131,7 @@ Ref4B`
 ];
 
 export default function MailClient() {
-  const [selectedMail, setSelectedMail] = useState(null);
+  const [selectedMail, setSelectedMail] = useState<Mail | null>(null);
 
   return (
     <div className="mail-client">

@@ -6,20 +6,20 @@
 import { useEffect, useCallback } from 'react';
 import { storageManager, StorageKeys } from '../utils/storageManager';
 
-export function useTerminalPersistence(history, onLoadHistory) {
+export function useTerminalPersistence(_history: unknown, onLoadHistory?: (commands: string[]) => void) {
   // Lade History beim Mount
   useEffect(() => {
     (async () => {
       const savedHistory = await storageManager.getItem(StorageKeys.TERMINAL_HISTORY);
       if (savedHistory && savedHistory.length > 0) {
-        const commands = savedHistory.map(item => item.command);
+        const commands = savedHistory.map((item: { command: string }) => item.command);
         onLoadHistory?.(commands);
       }
     })();
   }, [onLoadHistory]);
 
   // Speichere jeden neuen Befehl
-  const saveCommand = useCallback(async (command, output = '', exitCode = 0) => {
+  const saveCommand = useCallback(async (command: string, output = '', exitCode = 0) => {
     await storageManager.addTerminalCommand(command, output, exitCode);
   }, []);
 
@@ -29,8 +29,8 @@ export function useTerminalPersistence(history, onLoadHistory) {
     if (!history) return [];
 
     // Zähle die Häufigkeit der Commands
-    const frequency = {};
-    history.forEach(item => {
+    const frequency: Record<string, number> = {};
+    history.forEach((item: { command: string }) => {
       const cmd = item.command.split(' ')[0];
       frequency[cmd] = (frequency[cmd] || 0) + 1;
     });
@@ -43,7 +43,7 @@ export function useTerminalPersistence(history, onLoadHistory) {
   }, []);
 
   // Suche in der History
-  const searchHistory = useCallback(async (query) => {
+  const searchHistory = useCallback(async (query: string) => {
     return await storageManager.getTerminalHistory(query);
   }, []);
 

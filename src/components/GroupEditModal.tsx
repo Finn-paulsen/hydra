@@ -1,8 +1,17 @@
 import React, { useState } from "react";
+import type { UserRecord } from "../utils/userData";
 
-export default function GroupEditModal({ group, members, allUsers, onSave, onCancel }) {
-  const [selected, setSelected] = useState(members.map(u => u.id));
-  function toggleUser(id) {
+interface GroupEditModalProps {
+  group?: { name?: string } | null;
+  members: UserRecord[];
+  allUsers: UserRecord[];
+  onSave: (ids: string[]) => void;
+  onCancel: () => void;
+}
+
+export default function GroupEditModal({ group, members, allUsers, onSave, onCancel }: GroupEditModalProps) {
+  const [selected, setSelected] = useState<string[]>(members.map(u => u.id));
+  function toggleUser(id: string) {
     setSelected(sel => sel.includes(id) ? sel.filter(x => x !== id) : [...sel, id]);
   }
   function handleSave() {

@@ -1,6 +1,7 @@
-import { faker } from '@faker-js/faker'
+const loadFaker = async () => (await import('@faker-js/faker')).faker
 
-export function generateFakeUsers(count = 10) {
+export async function generateFakeUsers(count = 10) {
+  const faker = await loadFaker()
   return Array.from({ length: count }, () => ({
     id: faker.string.uuid(),
     name: faker.person.fullName(),
@@ -15,7 +16,8 @@ export function generateFakeUsers(count = 10) {
   }))
 }
 
-export function generateFakeNetwork(nodeCount = 12) {
+export async function generateFakeNetwork(nodeCount = 12) {
+  const faker = await loadFaker()
   const nodes = Array.from({ length: nodeCount }, (_, i) => ({
     id: 'N' + (i + 1),
     group: faker.number.int({ min: 1, max: 3 }),
@@ -35,7 +37,8 @@ export function generateFakeNetwork(nodeCount = 12) {
   return { nodes, links }
 }
 
-export function generateFakeTimeline(count = 20) {
+export async function generateFakeTimeline(count = 20) {
+  const faker = await loadFaker()
   return Array.from({ length: count }, () => ({
     id: faker.string.uuid(),
     date: faker.date.past({ years: 5 }).toISOString().slice(0, 10),
@@ -45,7 +48,8 @@ export function generateFakeTimeline(count = 20) {
   }))
 }
 
-export function generateFakeBio() {
+export async function generateFakeBio() {
+  const faker = await loadFaker()
   return {
     name: faker.person.fullName(),
     birth: faker.date.past({ years: 30 }).toISOString().slice(0, 10),

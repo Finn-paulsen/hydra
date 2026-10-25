@@ -14,7 +14,7 @@ export function useUserProfile() {
   }, []);
 
   // Speichern/Update des User-Profils
-  const updateProfile = useCallback(async (profileData) => {
+  const updateProfile = useCallback(async (profileData: Record<string, any>) => {
     const current = await storageManager.getUserProfile();
     const updated = {
       ...current,
@@ -26,7 +26,7 @@ export function useUserProfile() {
   }, []);
 
   // Ändert Features/Instellungen des aktuellen Users
-  const updateSettings = useCallback(async (settings) => {
+  const updateSettings = useCallback(async (settings: Record<string, any>) => {
     const profile = await loadProfile();
     const updated = {
       ...profile,
@@ -41,7 +41,7 @@ export function useUserProfile() {
   }, [loadProfile]);
 
   // Login-User setzen
-  const setLoginUser = useCallback(async (userData) => {
+  const setLoginUser = useCallback(async (userData: Record<string, any>) => {
     const profile = {
       ...userData,
       lastLogin: new Date().toISOString(),
@@ -77,11 +77,11 @@ export function useUserProfile() {
   }, [loadProfile]);
 
   // Füge zu Favoriten hinzu
-  const addFavorite = useCallback(async (favorite) => {
+  const addFavorite = useCallback(async (favorite: { id: string | number; [k: string]: any }) => {
     const profile = await loadProfile();
     const favorites = profile?.favorites || [];
     
-    if (!favorites.find(f => f.id === favorite.id)) {
+    if (!favorites.find((f: { id: string | number }) => f.id === favorite.id)) {
       favorites.push({
         ...favorite,
         addedAt: new Date().toISOString()
@@ -92,9 +92,9 @@ export function useUserProfile() {
   }, [loadProfile, updateProfile]);
 
   // Entferne aus Favoriten
-  const removeFavorite = useCallback(async (favoriteId) => {
+  const removeFavorite = useCallback(async (favoriteId: string | number) => {
     const profile = await loadProfile();
-    const favorites = (profile?.favorites || []).filter(f => f.id !== favoriteId);
+    const favorites = (profile?.favorites || []).filter((f: { id: string | number }) => f.id !== favoriteId);
     await updateProfile({ favorites });
     return favorites;
   }, [loadProfile, updateProfile]);

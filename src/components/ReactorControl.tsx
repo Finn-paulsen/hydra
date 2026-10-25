@@ -9,8 +9,12 @@ import './ReactorControl.css';
  * Echtzeit-Monitoring von Systemressourcen, Prozessen und Systemlast
  */
 
+interface ProcessInfo { id: number; name: string; cpu: number; memory: number; status: string; }
+interface SystemAlert { id: number; level: string; message: string; time: string; }
+interface SystemMetrics { cpuLoad: number; memoryUsage: number; diskUsage: number; networkTraffic: number; processCount: number; systemTemp: number; uptime: string; }
+
 export default function ReactorControl() {
-  const [systemMetrics, setSystemMetrics] = useState({
+  const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({
     cpuLoad: 42,
     memoryUsage: 67,
     diskUsage: 54,
@@ -20,7 +24,7 @@ export default function ReactorControl() {
     uptime: '23d 14h 32m',
   });
 
-  const [processes, setProcesses] = useState([
+  const [processes, setProcesses] = useState<ProcessInfo[]>([
     { id: 1, name: 'HIVE-MIND.exe', cpu: 12.5, memory: 234, status: 'RUNNING' },
     { id: 2, name: 'SURVEILLANCE.sys', cpu: 8.3, memory: 156, status: 'RUNNING' },
     { id: 3, name: 'ARCHIVE.service', cpu: 5.1, memory: 98, status: 'RUNNING' },
@@ -28,7 +32,7 @@ export default function ReactorControl() {
     { id: 5, name: 'ENCRYPTION.worker', cpu: 2.8, memory: 45, status: 'IDLE' },
   ]);
 
-  const [alerts, setAlerts] = useState([
+  const [alerts, setAlerts] = useState<SystemAlert[]>([
     { id: 1, level: 'WARNING', message: 'CPU Load approaching threshold', time: '14:32:15' },
     { id: 2, level: 'INFO', message: 'Memory optimization completed', time: '14:31:42' },
     { id: 3, level: 'CRITICAL', message: 'Disk space critically low on /archive', time: '14:30:18' },
@@ -65,7 +69,7 @@ export default function ReactorControl() {
     }
   };
 
-  const handleKillProcess = (id) => {
+  const handleKillProcess = (id: number) => {
     setProcesses(prev => prev.filter(p => p.id !== id));
     setAlerts(prev => [
       { id: Date.now(), level: 'INFO', message: `Process terminated: ${processes.find(p => p.id === id)?.name}`, time: new Date().toLocaleTimeString() },
@@ -73,7 +77,7 @@ export default function ReactorControl() {
     ]);
   };
 
-  const getMetricColor = (value, thresholds = { warning: 70, critical: 85 }) => {
+  const getMetricColor = (value: number, thresholds: { warning: number; critical: number } = { warning: 70, critical: 85 }): string => {
     if (value >= thresholds.critical) return '#ff1744';
     if (value >= thresholds.warning) return '#ff9800';
     return '#4caf50';

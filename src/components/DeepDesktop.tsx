@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense, type FormEvent } from 'react';
 import './DeepDesktop.css';
 import TerminalIcon from '@mui/icons-material/Terminal';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -16,9 +16,11 @@ import SystemSettings from './SystemSettings';
 import UserManager from './UserManager';
 import FileExplorer from './FileExplorer';
 import SurveillanceCenter from './SurveillanceCenter';
-import HiveMindArchive from './HiveMindArchive';
+const HiveMindArchive = lazy(() => import('./HiveMindArchive'));
 
-const DEEP_PROGRAMS = [
+interface DeepProgram { name: string; icon: React.ReactNode; type: string }
+
+const DEEP_PROGRAMS: DeepProgram[] = [
   { name: "CCTV-Überwachung", icon: <VideocamIcon fontSize="large" />, type: 'surveillance' },
   { name: "HIVE-MIND Archiv", icon: <HubIcon fontSize="large" />, type: 'hivemind' },
   { name: "HIVE-MIND Reaktor", icon: <AssessmentIcon fontSize="large" />, type: 'reactor' },
@@ -39,7 +41,7 @@ function DeepConsole() {
   ]);
   const [input, setInput] = useState('');
 
-  const commands = {
+  const commands: Record<string, string[]> = {
     help: [
       'Verfügbare interne Befehle:',
       'help            - Diese Hilfe',
@@ -130,18 +132,20 @@ const DEEP_VALID_CREDENTIALS = [
   { user: 'test', pass: 'test' },
 ];
 
-function isDeepValidCredential(user, pass) {
+function isDeepValidCredential(user: string, pass: string): boolean {
   return DEEP_VALID_CREDENTIALS.some(entry => entry.user === user && entry.pass === pass);
 }
 
-export default function DeepDesktop({ onLogout }) {
+interface DeepDesktopProps { onLogout?: () => void }
+
+export default function DeepDesktop({ onLogout }: DeepDesktopProps) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
-  const [activeProgram, setActiveProgram] = useState(null);
+  const [activeProgram, setActiveProgram] = useState<DeepProgram | null>(null);
 
-  function handleLogin(e) {
+  function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (isDeepValidCredential(user, pass)) {
       setLoggedIn(true);
@@ -195,7 +199,7 @@ export default function DeepDesktop({ onLogout }) {
         </div>
         <div className="deep-program-content">
           {activeProgram.type === 'surveillance' && <SurveillanceCenter />}
-          {activeProgram.type === 'hivemind' && <HiveMindArchive />}
+          {activeProgram.type === 'hivemind' && <Suspense fallback={null}><HiveMindArchive /></Suspense>}
           {activeProgram.type === 'reactor' && <ReactorControl />}
           {activeProgram.type === 'exploit' && <ExploitLab />}
           {activeProgram.type === 'satellite' && <SatelliteAccess />}

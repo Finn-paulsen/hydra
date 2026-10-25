@@ -52,7 +52,20 @@ export const AuditSeverity = {
   CRITICAL: 'critical'
 };
 
+type Details = Record<string, any>;
+
+interface AuditLogEntryRecord {
+  action: string;
+  user: string;
+  severity: string;
+  ts: string;
+  [key: string]: any;
+}
+
 class AuditLogger {
+  sessionId: string;
+  userId: string | null;
+
   constructor() {
     this.sessionId = this._generateSessionId();
     this.userId = null;
@@ -61,7 +74,7 @@ class AuditLogger {
   /**
    * Protokolliert ein Audit-Event
    */
-  async log(eventType, data = {}) {
+  async log(eventType: string, data: Details = {}) {
     const auditEntry = {
       id: this._generateId(),
       timestamp: new Date().toISOString(),
@@ -98,7 +111,7 @@ class AuditLogger {
   /**
    * Protokolliert Login
    */
-  async logLogin(userId, details = {}) {
+  async logLogin(userId: string, details: Details = {}) {
     this.userId = userId;
     return this.log(AuditEventTypes.USER_LOGIN, {
       severity: AuditSeverity.MEDIUM,
@@ -113,7 +126,7 @@ class AuditLogger {
   /**
    * Protokolliert Logout
    */
-  async logLogout(details = {}) {
+  async logLogout(details: Details = {}) {
     const result = this.log(AuditEventTypes.USER_LOGOUT, {
       severity: AuditSeverity.MEDIUM,
       description: `Benutzer ${this.userId} abgemeldet`,
@@ -129,7 +142,7 @@ class AuditLogger {
   /**
    * Protokolliert Datenzugriff
    */
-  async logDataAccess(resourceId, resourceType, details = {}) {
+  async logDataAccess(resourceId: string, resourceType: string, details: Details = {}) {
     return this.log(AuditEventTypes.DATA_VIEW, {
       severity: AuditSeverity.MEDIUM,
       description: `${resourceType} ${resourceId} zugegriffen`,
@@ -144,7 +157,7 @@ class AuditLogger {
   /**
    * Protokolliert Datenfernexport
    */
-  async logDataExport(resourceIds = [], format = 'json', details = {}) {
+  async logDataExport(resourceIds: string[] = [], format = 'json', details: Details = {}) {
     return this.log(AuditEventTypes.DATA_EXPORT, {
       severity: AuditSeverity.HIGH,
       description: `${resourceIds.length} Ressourcen als ${format} exportiert`,
@@ -159,7 +172,7 @@ class AuditLogger {
   /**
    * Protokolliert Suchen
    */
-  async logSearch(query, resultCount, details = {}) {
+  async logSearch(query: string, resultCount: number, details: Details = {}) {
     return this.log(AuditEventTypes.DATA_SEARCH, {
       severity: AuditSeverity.LOW,
       description: `Suche durchgeführt: "${query}" (${resultCount} Ergebnisse)`,
@@ -174,7 +187,7 @@ class AuditLogger {
   /**
    ProtokollIert Verschlüsslung
    */
-  async logEncryption(driveId, action, details = {}) {
+  async logEncryption(driveId: string, action: string, details: Details = {}) {
     const eventType = action === 'start' ? 
       AuditEventTypes.ENCRYPTION_STARTED : 
       action === 'complete' ?
@@ -196,7 +209,7 @@ class AuditLogger {
   /**
    * Protokolliert Sicherheitsvorfälle
    */
-  async logSecurityEvent(eventType, description, severity = AuditSeverity.HIGH, details = {}) {
+  async logSecurityEvent(eventType: string, description: string, severity: string = AuditSeverity.HIGH, details: Details = {}) {
     return this.log(eventType, {
       severity,
       description,
@@ -207,8 +220,8 @@ class AuditLogger {
   /**
    * Gibt alle Audit Logs zurück mit optionalem Filter
    */
-  async getAuditLogs(filter = {}) {
-    const logs = await storageManager.getItem(StorageKeys.AUDIT_LOG) || [];
+  async getAuditLogs(filter: { userId?: string; eventType?: string; severity?: string; startDate?: Date | string; endDate?: Date | string } = {}): Promise<AuditLogEntryRecord[]> {
+    const logs: AuditLogEntryRecord[] = await storageManager.getItem(StorageKeys.AUDIT_LOG) || [];
 
     let filtered = logs;
 
@@ -225,11 +238,11 @@ class AuditLogger {
     }
 
     if (filter.startDate) {
-      filtered = filtered.filter(l => new Date(l.ts) >= new Date(filter.startDate));
+      filtered = filtered.filter(l => new Date(l.ts) >= new Date(filter.startDate!));
     }
 
     if (filter.endDate) {
-      filtered = filtered.filter(l => new Date(l.ts) <= new Date(filter.endDate));
+      filtered = filtered.filter(l => new Date(l.ts) <= new Date(filter.endDate!));
     }
 
     return filtered;
@@ -239,9 +252,16 @@ class AuditLogger {
    * Gibt Audit-Statistiken zurück
    */
   async getAuditStats() {
-    const logs = await storageManager.getItem(StorageKeys.AUDIT_LOG) || [];
+    const logs: AuditLogEntryRecord[] = await storageManager.getItem(StorageKeys.AUDIT_LOG) || [];
 
-    const stats = {
+    const stats: {
+      totalEntries: number;
+      entriesByType: Record<string, number>;
+      entriesBySeverity: Record<string, number>;
+      entriesByUser: Record<string, number>;
+      lastEntry: AuditLogEntryRecord | null;
+      dateRange: { from: string | null; to: string | null };
+    } = {
       totalEntries: logs.length,
       entriesByType: {},
       entriesBySeverity: {},
@@ -271,7 +291,7 @@ class AuditLogger {
    * Löscht alte Audit-Logs (älter als X Tage)
    */
   async deleteOldLogs(daysOld = 90) {
-    const logs = await storageManager.getItem(StorageKeys.AUDIT_LOG) || [];
+    const logs: AuditLogEntryRecord[] = await storageManager.getItem(StorageKeys.AUDIT_LOG) || [];
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
@@ -363,7 +383,7 @@ Bericht erstellt: ${new Date().toISOString()}
     return 'CLIENT_IP';
   }
 
-  _logToConsole(entry) {
+  _logToConsole(entry: Details) {
     const color = entry.severity === AuditSeverity.CRITICAL ? 'color: red' : 'color: orange';
     console.warn(`%c[AUDIT] ${entry.eventType}`, color, entry);
   }

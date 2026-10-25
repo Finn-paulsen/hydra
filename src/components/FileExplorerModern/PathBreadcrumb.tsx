@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function PathBreadcrumb({ path, onNavigate }) {
+export default function PathBreadcrumb({ path, onNavigate }: { path: string; onNavigate: (path: string) => void }) {
   const parts = path.split('/').filter(Boolean);
   return (
     <div className="path-breadcrumb">

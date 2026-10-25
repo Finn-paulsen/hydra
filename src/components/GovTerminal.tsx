@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import "./govTerminal.css";
-import DeepDesktop from "./DeepDesktop";
 import { useTerminalPersistence } from "../hooks/useTerminalPersistence";
 
 const PROMPT = "GOV-USER@ARCHIVE:~$";
@@ -77,8 +76,12 @@ const COMMANDS = {
   ]
 };
 
-export default function GovTerminal({ onDeepAccess }) {
-  const [lines, setLines] = useState([
+interface GovTerminalProps {
+  onDeepAccess?: () => void;
+}
+
+export default function GovTerminal({ onDeepAccess }: GovTerminalProps) {
+  const [lines, setLines] = useState<string[]>([
     ...SYSTEM_BANNER,
     "Willkommen im BUNDESARCHIV-Terminal.",
     "Geben Sie 'help' für verfügbare Befehle ein."
@@ -87,11 +90,11 @@ export default function GovTerminal({ onDeepAccess }) {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
   const [cursorVisible, setCursorVisible] = useState(true);
-  const terminalRef = useRef(null);
-  const [history, setHistory] = useState([]);
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [selection, setSelection] = useState({ start: null, end: null });
-  const [cursorPos, setCursorPos] = useState(null);
+  const [selection, setSelection] = useState<{ start: number | null; end: number | null }>({ start: null, end: null });
+  const [cursorPos, setCursorPos] = useState<number | null>(null);
   const [awaitingDeepPassword, setAwaitingDeepPassword] = useState(false);
 
   // Terminal-Persistierung Hook
@@ -112,7 +115,7 @@ export default function GovTerminal({ onDeepAccess }) {
     terminalRef.current && terminalRef.current.focus();
   }
 
-  function handleCommand(cmd) {
+  function handleCommand(cmd: string) {
     if (cmd === "securelogin") {
       setLines(l => [
         PROMPT + " securelogin",
@@ -196,8 +199,8 @@ export default function GovTerminal({ onDeepAccess }) {
       setError("");
       return;
     }
-    if (COMMANDS[cmd]) {
-      setLines(l => [...l, PROMPT + " " + cmd, ...COMMANDS[cmd]]);
+    if (cmd in COMMANDS) {
+      setLines(l => [...l, PROMPT + " " + cmd, ...COMMANDS[cmd as keyof typeof COMMANDS]]);
       setError("");
       saveCommand(cmd);
     } else if (cmd.length > 0) {
@@ -207,7 +210,7 @@ export default function GovTerminal({ onDeepAccess }) {
     }
   }
 
-  function handleKeyDown(e) {
+  function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
   if (e.ctrlKey && e.key.toLowerCase() === "c") {
       if (selection.start !== null && selection.end !== null && selection.start !== selection.end) {
         const sel = input.slice(Math.min(selection.start, selection.end), Math.max(selection.start, selection.end));
@@ -323,11 +326,12 @@ export default function GovTerminal({ onDeepAccess }) {
         <span className="gov-terminal-prompt">{PROMPT}</span>
         <span className="gov-terminal-input-sim">
           {(() => {
-            const selActive = selection.start !== null && selection.end !== null && selection.start !== selection.end;
+            const { start, end } = selection;
+            const selActive = start !== null && end !== null && start !== end;
             const pos = cursorPos ?? input.length;
-            const left = input.slice(0, selActive ? Math.min(selection.start, selection.end) : pos);
-            const sel = selActive ? input.slice(Math.min(selection.start, selection.end), Math.max(selection.start, selection.end)) : "";
-            const right = selActive ? input.slice(Math.max(selection.start, selection.end)) : input.slice(pos);
+            const left = input.slice(0, selActive ? Math.min(start, end) : pos);
+            const sel = selActive ? input.slice(Math.min(start, end), Math.max(start, end)) : "";
+            const right = selActive ? input.slice(Math.max(start, end)) : input.slice(pos);
             return <>
               {left}
               {selActive && <span className="gov-terminal-selection">{sel}</span>}

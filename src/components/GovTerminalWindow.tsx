@@ -1,9 +1,15 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Terminal } from 'xterm';
+import { Terminal, type ITheme } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
 
-const COMMANDS = {
+type SetHistory = React.Dispatch<React.SetStateAction<string[]>>;
+
+interface TerminalCommand {
+  execute: ((terminal: Terminal, setHistory: SetHistory, args: string[]) => string | null) | null;
+}
+
+const COMMANDS: Record<string, TerminalCommand> = {
   help: {
     execute: () => 'Verfügbare Befehle: help, clear, echo, dir, exit',
   },
@@ -26,7 +32,7 @@ const COMMANDS = {
   },
 };
 
-const TERMINAL_STYLES = {
+const TERMINAL_STYLES: Record<string, React.CSSProperties> = {
   window: {
     position: 'fixed',
     left: '20vw',
@@ -42,21 +48,26 @@ const TERMINAL_STYLES = {
   },
 };
 
-export default function GovTerminalWindow({ onClose, initialHistory = [] }) {
-  const terminalRef = useRef(null);
-  const xtermRef = useRef(null);
+interface GovTerminalWindowProps {
+  onClose?: () => void;
+  initialHistory?: string[];
+}
+
+export default function GovTerminalWindow({ onClose, initialHistory = [] }: GovTerminalWindowProps) {
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const xtermRef = useRef<Terminal | null>(null);
   const [currentInput, setCurrentInput] = useState('');
-  const [history, setHistory] = useState(initialHistory);
+  const [history, setHistory] = useState<string[]>(initialHistory);
   const PROMPT = 'C:/GOV-ARCHIVE> ';
 
-  const showPrompt = (xterm) => {
+  const showPrompt = (xterm: Terminal | null) => {
     if (xterm) {
       xterm.write(`\r\n${PROMPT}`);
       setCurrentInput('');
     }
   };
 
-  const handleCommand = (xterm, cmd) => {
+  const handleCommand = (xterm: Terminal | null, cmd: string) => {
     if (!xterm || !cmd.trim()) return;
 
     // Add to history
@@ -71,7 +82,7 @@ export default function GovTerminalWindow({ onClose, initialHistory = [] }) {
       return;
     }
 
-    if (command) {
+    if (command && command.execute) {
       const output = command.execute(xterm, setHistory, args);
       if (output) {
         xterm.write(`\r\n${output}`);
@@ -96,7 +107,7 @@ export default function GovTerminalWindow({ onClose, initialHistory = [] }) {
         foreground: '#e0e0e0',
         cursor: '#6cf',
         selection: '#333',
-      },
+      } as ITheme,
       windowsMode: true,
       disableStdin: false,
     });
@@ -118,7 +129,7 @@ export default function GovTerminalWindow({ onClose, initialHistory = [] }) {
     const handleResize = () => fitAddon.fit();
     window.addEventListener('resize', handleResize);
 
-    const handleKeyPress = (e) => {
+    const handleKeyPress = (e: { key: string; domEvent: KeyboardEvent }) => {
       const { domEvent, key } = e;
       
       if (domEvent.key === 'Enter') {

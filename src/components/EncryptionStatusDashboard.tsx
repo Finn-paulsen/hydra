@@ -7,7 +7,12 @@ import React, { useState, useEffect } from 'react';
 import { storageManager } from '../utils/storageManager';
 import './EncryptionStatusDashboard.css';
 
-const MOCK_DRIVES = [
+interface Drive {
+  id: string; name: string; sizeGB: number; encryptionStatus: 'encrypted' | 'encrypting' | 'not_encrypted' | 'error';
+  method: string; percentProtected: number; lastEncrypted: string | null; recoveryKeyStatus: 'backed_up' | 'pending' | 'none';
+}
+
+const MOCK_DRIVES: Drive[] = [
   {
     id: 'C:',
     name: 'System',
@@ -51,10 +56,10 @@ const MOCK_DRIVES = [
 ];
 
 export default function EncryptionStatusDashboard() {
-  const [drives, setDrives] = useState(MOCK_DRIVES);
-  const [selectedDrive, setSelectedDrive] = useState(null);
+  const [drives, setDrives] = useState<Drive[]>(MOCK_DRIVES);
+  const [selectedDrive, setSelectedDrive] = useState<string | null>(null);
   const [showRecoveryKey, setShowRecoveryKey] = useState(false);
-  const [encryptionProgress, setEncryptionProgress] = useState({});
+  const [encryptionProgress, setEncryptionProgress] = useState<Record<string, number>>({});
 
   useEffect(() => {
     // Simuliere Encryption Progress für D: Laufwerk
@@ -77,7 +82,7 @@ export default function EncryptionStatusDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: Drive['encryptionStatus']): string => {
     switch (status) {
       case 'encrypted': return '#00ff00';
       case 'encrypting': return '#ffff00';
@@ -87,7 +92,7 @@ export default function EncryptionStatusDashboard() {
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status: Drive['encryptionStatus']): string => {
     switch (status) {
       case 'encrypted': return 'Verschlüsselt';
       case 'encrypting': return 'Wird verschlüsselt...';
@@ -97,7 +102,7 @@ export default function EncryptionStatusDashboard() {
     }
   };
 
-  const handleEncryptDrive = async (driveId) => {
+  const handleEncryptDrive = async (driveId: string) => {
     if (confirm(`Sind Sie sicher? Laufwerk ${driveId} wird jetzt verschlüsselt.`)) {
       setDrives(prevDrives =>
         prevDrives.map(drive =>
@@ -115,7 +120,7 @@ export default function EncryptionStatusDashboard() {
     }
   };
 
-  const handleExportRecoveryKey = async (driveId) => {
+  const handleExportRecoveryKey = async (driveId: string) => {
     const drive = drives.find(d => d.id === driveId);
     if (!drive) return;
 
@@ -242,6 +247,7 @@ Drive: ${driveId}
             <div className="detail-content">
               {(() => {
                 const drive = drives.find(d => d.id === selectedDrive);
+                if (!drive) return null;
                 return (
                   <>
                     <div className="detail-row">

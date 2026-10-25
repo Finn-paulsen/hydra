@@ -9,11 +9,20 @@ import { MapContainer, TileLayer, Popup, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
 import './HiveMindArchive.css';
 
-const DEFAULT_CENTER = [51.1657, 10.4515]; // Germanys center
+const DEFAULT_CENTER: [number, number] = [51.1657, 10.4515]; // Germanys center
 const DEFAULT_ZOOM = 6;
 
 // Mock Daten für Polizei-Standorte mit echten deutschen Koordinaten
-const POLICE_LOCATIONS = [
+interface PoliceLocation {
+  id: string; name: string; type: 'police' | 'bka' | 'cyber'; lat: number; lng: number;
+  activeInvestigations: number; status: 'active' | 'critical' | 'warning'; cases: string[];
+}
+interface HiveMindArchiveProps {
+  onLocationSelect?: (location: PoliceLocation) => void;
+  onCaseOpen?: (caseId: string) => void;
+}
+
+const POLICE_LOCATIONS: PoliceLocation[] = [
   {
     id: 'poli_001',
     name: 'Polizeipräsidium Berlin',
@@ -66,28 +75,28 @@ const POLICE_LOCATIONS = [
   }
 ];
 
-export default function HiveMindArchive({ onLocationSelect, onCaseOpen }) {
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [mapCenter, setMapCenter] = useState(DEFAULT_CENTER);
+export default function HiveMindArchive({ onLocationSelect, onCaseOpen }: HiveMindArchiveProps) {
+  const [selectedLocation, setSelectedLocation] = useState<PoliceLocation | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(DEFAULT_CENTER);
   const [mapZoom, setMapZoom] = useState(DEFAULT_ZOOM);
   const [showLocationDetails, setShowLocationDetails] = useState(false);
-  const [filterType, setFilterType] = useState('all');
+  const [filterType, setFilterType] = useState<'all' | PoliceLocation['type']>('all');
 
   const filteredLocations = POLICE_LOCATIONS.filter(loc => 
     filterType === 'all' || loc.type === filterType
   );
 
-  const handleLocationClick = useCallback((location) => {
+  const handleLocationClick = useCallback((location: PoliceLocation) => {
     setSelectedLocation(location);
     setShowLocationDetails(true);
     onLocationSelect?.(location);
   }, [onLocationSelect]);
 
-  const handleCaseClick = useCallback((caseId) => {
+  const handleCaseClick = useCallback((caseId: string) => {
     onCaseOpen?.(caseId);
   }, [onCaseOpen]);
 
-  const getLocationColor = (location) => {
+  const getLocationColor = (location: PoliceLocation): string => {
     switch (location.status) {
       case 'critical': return '#ff0000';
       case 'warning': return '#ff9900';
@@ -96,7 +105,7 @@ export default function HiveMindArchive({ onLocationSelect, onCaseOpen }) {
     }
   };
 
-  const getLocationIcon = (type) => {
+  const getLocationIcon = (type: PoliceLocation['type']): string => {
     const icons = {
       police: '🚔',
       bka: '🏛️',
@@ -116,7 +125,7 @@ export default function HiveMindArchive({ onLocationSelect, onCaseOpen }) {
           <label>Filtertyp:</label>
           <select 
             value={filterType} 
-            onChange={(e) => setFilterType(e.target.value)}
+            onChange={(e) => setFilterType(e.target.value as typeof filterType)}
           >
             <option value="all">Alle Behörden</option>
             <option value="police">Polizei</option>

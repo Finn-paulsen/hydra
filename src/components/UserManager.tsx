@@ -5,36 +5,56 @@ import React, { useState, useRef } from "react";
 // (hooks are declared after the main import below)
 import Toast from "./Toast";
 import LoadingOverlay from "./LoadingOverlay";
-import { GROUPS_LIST, generateUserData } from "../utils/userData";
+import { GROUPS_LIST, generateUserData, type UserRecord } from "../utils/userData";
 import { getUsers, setUsers, addUser, updateUser, deleteUser } from "../utils/userStore";
 
 
 
-import GovUserEditor from "./GovUserEditor";
+import GovUserEditor, { type GovUserForm } from "./GovUserEditor";
 import CriticalActionModal from "./CriticalActionModal";
 import GroupEditModal from "./GroupEditModal";
-import { writeAuditLog, getAuditLog } from "../utils/auditLog";
+import { writeAuditLog, getAuditLog, type AuditEntry } from "../utils/auditLog";
 import './UserManager.css';
 import './ldapSync.css';
 
 
 
-export default function UserManager({ onRequestClose }) {
+type ManagedUser = UserRecord & {
+  role?: string;
+  lastLogin?: string;
+  lastChangedBy?: string;
+  loginAttempts?: number;
+  mustChangePassword?: boolean;
+  cannotChangePassword?: boolean;
+  passwordNeverExpires?: boolean;
+  accountDisabled?: boolean;
+};
+
+interface ToastState {
+  text: string;
+  type: string;
+}
+
+interface UserManagerProps {
+  onRequestClose?: { ref?: React.Ref<{ canClose: () => boolean; dirty: boolean }> };
+}
+
+export default function UserManager({ onRequestClose }: UserManagerProps) {
       // Group membership modal state
       const [showGroupEditModal, setShowGroupEditModal] = useState(false);
-      const [editingGroupId, setEditingGroupId] = useState(null);
+      const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
 
-      function handleEditGroup(groupId) {
+      function handleEditGroup(groupId: string) {
         setEditingGroupId(groupId);
         setShowGroupEditModal(true);
       }
 
-      function handleSaveGroupMembers(selectedUserIds) {
+      function handleSaveGroupMembers(selectedUserIds: string[]) {
         // Remove group from all users, then add to selected
-        const groupId = editingGroupId;
+        const groupId = editingGroupId as string;
         const updated = users.map(u =>
           selectedUserIds.includes(u.id)
-            ? { ...u, group: groupId, groupName: GROUPS_LIST.find(g => g.id === groupId)?.name }
+            ? { ...u, group: groupId, groupName: GROUPS_LIST.find(g => g.id === groupId)?.name as string }
             : (u.group === groupId ? { ...u, group: '', groupName: '' } : u)
         );
         setUsers(updated);
@@ -45,14 +65,14 @@ export default function UserManager({ onRequestClose }) {
         setTimeout(() => setToast(null), 1800);
       }
     // Export/Import
-    const fileInputRef = useRef();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     function exportUsersCSV() {
-      const replacer = (key, value) => value === null ? '' : value;
+      const replacer = (key: string, value: unknown) => value === null ? '' : value;
       const header = ["name","username","groupName","status","permissions","lastLogin","loginAttempts"];
       const csv = [header.join(",")].concat(
         users.map(u => header.map(field => {
-          let val = u[field];
+          let val = (u as unknown as Record<string, unknown>)[field];
           if (Array.isArray(val)) return '"' + val.join(';') + '"';
           if (typeof val === 'string' && val.includes(',')) return '"' + val + '"';
           return val ?? '';
@@ -73,26 +93,26 @@ export default function UserManager({ onRequestClose }) {
       fileInputRef.current?.click();
     }
 
-    function importUsersCSV(e) {
-      const file = e.target.files[0];
+    function importUsersCSV(e: React.ChangeEvent<HTMLInputElement>) {
+      const file = e.target.files?.[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = function(evt) {
-        const text = evt.target.result;
+        const text = evt.target?.result as string;
         const lines = text.split(/\r?\n/).filter(Boolean);
         const [header, ...rows] = lines;
         const fields = header.split(',');
-        const imported = rows.map(row => {
+        const imported = rows.map((row): ManagedUser => {
           const vals = row.split(',');
-          const obj = {};
+          const obj: Record<string, string | string[]> = {};
           fields.forEach((f, i) => {
-            let v = vals[i] || '';
+            let v: string | string[] = vals[i] || '';
             if (f === 'permissions') v = v.replace(/"/g, '').split(';').filter(Boolean);
             obj[f] = v;
           });
           obj.id = Math.random().toString(36).slice(2, 10);
           obj.created = new Date().toISOString().split('T')[0];
-          return obj;
+          return obj as unknown as ManagedUser;
         });
         setUsersState(prev => [...prev, ...imported]);
         setUsers([...users, ...imported]);
@@ -102,18 +122,24 @@ export default function UserManager({ onRequestClose }) {
       reader.readAsText(file);
       e.target.value = '';
     }
-  const [users, setUsersState] = useState(getUsers());
+  const [users, setUsersState] = useState<ManagedUser[]>([]);
   const [tab, setTab] = useState('users');
-  const [auditLog, setAuditLog] = useState([]);
+  const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
   const [ldapSyncing, setLdapSyncing] = useState(false);
   const [ldapProgress, setLdapProgress] = useState(0);
-  const [toast, setToast] = useState(null);
-  const [editing, setEditing] = useState(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const [editing, setEditing] = useState<ManagedUser | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showNewUserModal, setShowNewUserModal] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [showCriticalModal, setShowCriticalModal] = useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    let active = true;
+    getUsers().then(list => { if (active) setUsersState(list as ManagedUser[]); });
+    return () => { active = false; };
+  }, []);
 
   React.useEffect(() => {
     if (tab === 'audit') {
@@ -121,14 +147,15 @@ export default function UserManager({ onRequestClose }) {
     }
   }, [tab, users]);
 
-  function handleEdit(user) {
+  function handleEdit(user: ManagedUser) {
     setEditing({ ...user });
     setShowEditModal(true);
   }
   const [showCriticalRightsModal, setShowCriticalRightsModal] = useState(false);
-  const [pendingRightsEdit, setPendingRightsEdit] = useState(null);
+  const [pendingRightsEdit, setPendingRightsEdit] = useState<ManagedUser | null>(null);
 
-  function handleSaveEdit(editedUser) {
+  function handleSaveEdit(form: GovUserForm) {
+    const editedUser = form as ManagedUser;
     // If rights or role changed, require confirmation
     const original = users.find(u => u.id === editedUser.id);
     if (original && (original.role !== editedUser.role || JSON.stringify(original.permissions) !== JSON.stringify(editedUser.permissions))) {
@@ -139,18 +166,18 @@ export default function UserManager({ onRequestClose }) {
     doSaveEdit(editedUser);
   }
 
-  function doSaveEdit(editedUser) {
+  function doSaveEdit(editedUser: ManagedUser) {
     const updated = users.map(u => u.id === editedUser.id ? editedUser : u);
     setUsers(updated);
     setUsersState(updated);
-    updateUser(editedUser);
+    void updateUser(editedUser);
     writeAuditLog({ action: 'edit', user: 'admin', targetUser: editedUser.username });
     setEditing(null);
     setShowEditModal(false);
     setDirty(true);
   }
 
-  function handleConfirmRightsEdit(auth) {
+  function handleConfirmRightsEdit() {
     if (pendingRightsEdit) {
       doSaveEdit(pendingRightsEdit);
       setPendingRightsEdit(null);
@@ -164,16 +191,16 @@ export default function UserManager({ onRequestClose }) {
   }
 
   const [showCriticalPwModal, setShowCriticalPwModal] = useState(false);
-  const [pendingPwUser, setPendingPwUser] = useState(null);
+  const [pendingPwUser, setPendingPwUser] = useState<ManagedUser | null>(null);
 
-  function handlePasswordReset(user) {
+  function handlePasswordReset(user: ManagedUser) {
     setPendingPwUser(user);
     setShowCriticalPwModal(true);
   }
 
-  function handleConfirmPwReset(auth) {
+  function handleConfirmPwReset() {
     // Optionally: validate password/token here
-    const user = pendingPwUser;
+    const user = pendingPwUser!;
     setToast({ text: `Passwort für ${user.username} wurde zurückgesetzt.`, type: 'success' });
     writeAuditLog({ action: 'reset-password', user: 'admin', targetUser: user.username });
     setTimeout(() => setToast(null), 1800);
@@ -185,19 +212,19 @@ export default function UserManager({ onRequestClose }) {
     setShowCriticalPwModal(false);
     setPendingPwUser(null);
   }
-  function handleDelete(id) {
+  function handleDelete(id: string) {
     setPendingDeleteId(id);
     setShowCriticalModal(true);
   }
 
-  function handleConfirmDelete(auth) {
+  function handleConfirmDelete() {
     // Optionally: validate password/token here
     const id = pendingDeleteId;
     const userToDelete = users.find(u => u.id === id);
     const updated = users.filter(u => u.id !== id);
     setUsers(updated);
     setUsersState(updated);
-    deleteUser(id);
+    void deleteUser(id as string);
     writeAuditLog({ action: 'delete', user: 'admin', targetUser: userToDelete?.username });
     setDirty(true);
     setShowCriticalModal(false);
@@ -210,16 +237,17 @@ export default function UserManager({ onRequestClose }) {
     setShowCriticalModal(false);
     setPendingDeleteId(null);
   }
-  function handleNewUser(newUserData) {
+  async function handleNewUser(formData: GovUserForm) {
+    const newUserData = formData as GovUserForm & { group?: string };
     const user = {
       ...newUserData,
       id: Math.random().toString(36).slice(2, 10),
       groupName: GROUPS_LIST.find(g => g.id === newUserData.group)?.name,
       permissions: newUserData.role === 'Admin' ? ['read', 'write', 'delete', 'manage'] : ['read', 'write'],
       created: new Date().toISOString().split('T')[0],
-    };
-    addUser(user);
-    setUsersState(getUsers());
+    } as UserRecord;
+    await addUser(user);
+    setUsersState((await getUsers()) as ManagedUser[]);
     writeAuditLog({ action: 'create', user: 'admin', targetUser: user.username });
     setShowNewUserModal(false);
     setDirty(true);
@@ -233,13 +261,13 @@ export default function UserManager({ onRequestClose }) {
     setShowCriticalLdapModal(true);
   }
 
-  function handleConfirmLdapSync(auth) {
+  async function handleConfirmLdapSync() {
     setShowCriticalLdapModal(false);
     setPendingLdap(false);
     writeAuditLog({ action: 'ldap-sync', user: 'admin' });
     // Simuliere: Immer Sync durchführen, unabhängig von Änderungen
-    const synced = generateUserData(10);
-    const all = [...synced];
+    const synced = await generateUserData(10);
+    const all: ManagedUser[] = [...synced];
     users.forEach(u => {
       if (!all.some(su => su.username === u.username)) all.push(u);
     });
@@ -275,7 +303,7 @@ export default function UserManager({ onRequestClose }) {
   }), [dirty]);
 
   // Hilfsfunktion: Browser/OS aus User-Agent extrahieren
-  function parseUserAgent(ua) {
+  function parseUserAgent(ua?: string | null) {
     if (!ua) return "-";
     // Einfache Extraktion: Browser und OS
     let browser = "";
@@ -484,7 +512,7 @@ export default function UserManager({ onRequestClose }) {
           </div>
         </div>
       )}
-      {toast && <Toast text={toast.text} type={toast.type} />}
+      {toast && <Toast message={toast.text} show type={toast.type} />}
       {showEditModal && editing && (
         <GovUserEditor
           user={editing}

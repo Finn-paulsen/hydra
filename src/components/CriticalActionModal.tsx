@@ -1,13 +1,20 @@
 import React, { useState } from "react";
 import "./govUserEditor.css";
 
-export default function CriticalActionModal({ actionLabel, onConfirm, onCancel, requireToken = false }) {
+interface CriticalActionModalProps {
+  actionLabel: string;
+  onConfirm: (credentials: { password: string } | { token: string }) => void;
+  onCancel: () => void;
+  requireToken?: boolean;
+}
+
+export default function CriticalActionModal({ actionLabel, onConfirm, onCancel, requireToken = false }: CriticalActionModalProps) {
   const [pw, setPw] = useState("");
   const [token, setToken] = useState("");
   const [mode, setMode] = useState("pw");
   const [error, setError] = useState("");
 
-  function handleSubmit(e) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (mode === "pw" && (!pw || pw.length < 4)) {
       setError("Bitte Passwort eingeben.");
@@ -37,12 +44,12 @@ export default function CriticalActionModal({ actionLabel, onConfirm, onCancel, 
           </div>
           {mode==="pw" && (
             <label>Eigenes Passwort:
-              <input type="password" value={pw} onChange={e=>setPw(e.target.value)} autoFocus />
+              <input type="password" value={pw} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setPw(e.target.value)} autoFocus />
             </label>
           )}
           {mode==="token" && requireToken && (
             <label>Admin-Token:
-              <input type="text" value={token} onChange={e=>setToken(e.target.value)} autoFocus />
+              <input type="text" value={token} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setToken(e.target.value)} autoFocus />
             </label>
           )}
           {error && <div style={{color:'#b00',marginTop:8}}>{error}</div>}

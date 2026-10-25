@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import type { FileEntry } from './types';
 
-export default function TextFileEditor({ file, onSave }) {
+export default function TextFileEditor({ file, onSave }: { file: FileEntry; onSave: (content: string) => void }) {
   const [value, setValue] = useState(file.content || '');
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
   };
 

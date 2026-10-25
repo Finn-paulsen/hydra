@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import type { CreateItemType } from './types';
 
-export default function CreateFileButton({ onCreate }) {
+export default function CreateFileButton({ onCreate }: { onCreate: (type: CreateItemType) => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="create-file-container">

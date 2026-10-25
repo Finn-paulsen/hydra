@@ -7,14 +7,18 @@ import './SatelliteAccess.css';
  * Echtzeit-Datenströme, Überwachungszonen, Signalstärke
  */
 
-const SATELLITES = [
+interface Satellite { id: number; name: string; status: 'ACTIVE' | 'STANDBY'; signal: number; coverage: string; }
+interface SurveillanceZone { id: number; name: string; lat: number; lng: number; threat: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'; activity: number; }
+interface DataStream { id: number; name: string; bandwidth: number; status: 'ACTIVE' | 'IDLE'; packets: number; }
+
+const SATELLITES: Satellite[] = [
   { id: 1, name: 'SENTINEL-1A', status: 'ACTIVE', signal: 95, coverage: 'EU' },
   { id: 2, name: 'SENTINEL-2B', status: 'ACTIVE', signal: 87, coverage: 'EU' },
   { id: 3, name: 'LANDSAT-8', status: 'ACTIVE', signal: 72, coverage: 'GLOBAL' },
   { id: 4, name: 'GOES-16', status: 'STANDBY', signal: 45, coverage: 'NA' },
 ];
 
-const SURVEILLANCE_ZONES = [
+const SURVEILLANCE_ZONES: SurveillanceZone[] = [
   { id: 1, name: 'Berlin Central', lat: 52.52, lng: 13.405, threat: 'LOW', activity: 34 },
   { id: 2, name: 'Munich District', lat: 48.1351, lng: 11.582, threat: 'MEDIUM', activity: 67 },
   { id: 3, name: 'Hamburg Port', lat: 53.545, lng: 10.0, threat: 'HIGH', activity: 89 },
@@ -22,7 +26,7 @@ const SURVEILLANCE_ZONES = [
   { id: 5, name: 'Cologne Station', lat: 50.9365, lng: 6.9589, threat: 'MEDIUM', activity: 45 },
 ];
 
-const DATA_STREAMS = [
+const DATA_STREAMS: DataStream[] = [
   { id: 1, name: 'SIGINT Feed', bandwidth: 2.5, status: 'ACTIVE', packets: 1245000 },
   { id: 2, name: 'IMINT Stream', bandwidth: 5.8, status: 'ACTIVE', packets: 3456000 },
   { id: 3, name: 'COMINT Channel', bandwidth: 1.2, status: 'ACTIVE', packets: 567000 },
@@ -31,8 +35,8 @@ const DATA_STREAMS = [
 
 export default function SatelliteAccess() {
   const [selectedSatellite, setSelectedSatellite] = useState(SATELLITES[0]);
-  const [zones, setZones] = useState(SURVEILLANCE_ZONES);
-  const [dataStreams, setDataStreams] = useState(DATA_STREAMS);
+  const [zones, setZones] = useState<SurveillanceZone[]>(SURVEILLANCE_ZONES);
+  const [dataStreams, setDataStreams] = useState<DataStream[]>(DATA_STREAMS);
   const [totalBandwidth, setTotalBandwidth] = useState(0);
   const [recordingActive, setRecordingActive] = useState(false);
 
@@ -56,8 +60,8 @@ export default function SatelliteAccess() {
     return () => clearInterval(interval);
   }, [dataStreams]);
 
-  const getThreatColor = (threat) => {
-    const colors = {
+  const getThreatColor = (threat: SurveillanceZone['threat']): string => {
+    const colors: Record<SurveillanceZone['threat'], string> = {
       'LOW': '#4caf50',
       'MEDIUM': '#ffeb3b',
       'HIGH': '#ff9800',
@@ -66,7 +70,7 @@ export default function SatelliteAccess() {
     return colors[threat] || '#b0b0b0';
   };
 
-  const handleZoneClick = (zone) => {
+  const handleZoneClick = (zone: SurveillanceZone) => {
     console.log('Zone selected:', zone);
   };
 

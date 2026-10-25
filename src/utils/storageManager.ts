@@ -24,6 +24,9 @@ export const StorageKeys = {
 };
 
 class StorageManager {
+  db: IDBDatabase | null = null;
+  isReady = false;
+
   constructor() {
     this.db = null;
     this.isReady = false;
@@ -33,8 +36,8 @@ class StorageManager {
   /**
    * Initialisiert IndexedDB für größere Datenmengen
    */
-  async initIndexedDB() {
-    return new Promise((resolve, reject) => {
+  async initIndexedDB(): Promise<void> {
+    return new Promise((resolve) => {
       const req = indexedDB.open('GOV-ARCHIVE', 1);
       
       req.onerror = () => {
@@ -44,13 +47,13 @@ class StorageManager {
       };
       
       req.onsuccess = (e) => {
-        this.db = e.target.result;
+        this.db = (e.target as IDBOpenDBRequest).result;
         this.isReady = true;
         resolve();
       };
       
       req.onupgradeneeded = (e) => {
-        const db = e.target.result;
+        const db = (e.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains('storage')) {
           db.createObjectStore('storage', { keyPath: 'key' });
         }
@@ -61,7 +64,7 @@ class StorageManager {
   /**
    * Speichert Daten mit automatischem Lock-Prevention
    */
-  async setItem(key, value, useIndexedDB = false) {
+  async setItem(key: string, value: unknown, useIndexedDB = false): Promise<boolean> {
     try {
       const data = {
         value,
@@ -71,14 +74,14 @@ class StorageManager {
       };
 
       if (useIndexedDB && this.db) {
-        return this._setIndexedDB(key, data);
+        return (await this._setIndexedDB(key, data)) as boolean;
       }
 
       const fullKey = `${STORAGE_PREFIX}${key}`;
       localStorage.setItem(fullKey, JSON.stringify(data));
       return true;
     } catch (e) {
-      if (e.name === 'QuotaExceededError') {
+      if (e instanceof DOMException && e.name === 'QuotaExceededError') {
         this._handleQuotaExceeded(key);
       }
       console.error(`Storage Fehler bei ${key}:`, e);
@@ -89,7 +92,7 @@ class StorageManager {
   /**
    * Lädt Daten mit Versions-Check
    */
-  async getItem(key, useIndexedDB = false) {
+  async getItem(key: string, useIndexedDB = false): Promise<any> {
     try {
       if (useIndexedDB && this.db) {
         return this._getIndexedDB(key);
@@ -111,7 +114,7 @@ class StorageManager {
   /**
    * Speichert Terminal-Befehl mit Metadaten
    */
-  async addTerminalCommand(command, output, exitCode = 0) {
+  async addTerminalCommand(command: string, output: string, exitCode = 0) {
     const history = (await this.getItem(StorageKeys.TERMINAL_HISTORY)) || [];
     
     history.push({
@@ -135,12 +138,12 @@ class StorageManager {
   /**
    * Lädt Terminal-History mit optionalem Filter
    */
-  async getTerminalHistory(filter = null) {
+  async getTerminalHistory(filter: string | null = null): Promise<any[]> {
     const history = (await this.getItem(StorageKeys.TERMINAL_HISTORY)) || [];
     
     if (!filter) return history;
     
-    return history.filter(h => 
+    return history.filter((h: { command: string }) => 
       h.command.toLowerCase().includes(filter.toLowerCase())
     );
   }
@@ -148,7 +151,7 @@ class StorageManager {
   /**
    * Speichert User-Profil mit Auto-Sync
    */
-  async setUserProfile(profile) {
+  async setUserProfile(profile: Record<string, any>) {
     const updated = {
       ...profile,
       lastModified: new Date().toISOString()
@@ -167,7 +170,7 @@ class StorageManager {
   /**
    * Speichert Audit-Log-Eintrag (mit Rotation)
    */
-  async addAuditLog(action, details = {}) {
+  async addAuditLog(action: string, details: Record<string, any> = {}) {
     const logs = (await this.getItem(StorageKeys.AUDIT_LOG)) || [];
     
     logs.push({
@@ -190,7 +193,7 @@ class StorageManager {
   /**
    * Speichert gespeicherte Suchen
    */
-  async addSavedSearch(name, query, type = 'global') {
+  async addSavedSearch(name: string, query: string, type = 'global') {
     const searches = (await this.getItem(StorageKeys.SAVED_SEARCHES)) || [];
     
     searches.push({
@@ -216,7 +219,7 @@ class StorageManager {
   /**
    * Speichert Recovery-Keys (verschlüsselt wenn möglich)
    */
-  async setRecoveryKey(driveId, key, metadata = {}) {
+  async setRecoveryKey(driveId: string, key: unknown, metadata: Record<string, unknown> = {}) {
     const keys = (await this.getItem(StorageKeys.ENCRYPTION_KEYS)) || {};
     
     keys[driveId] = {
@@ -232,7 +235,7 @@ class StorageManager {
   /**
    * Gibt Recovery-Key zurück
    */
-  async getRecoveryKey(driveId) {
+  async getRecoveryKey(driveId: string) {
     const keys = (await this.getItem(StorageKeys.ENCRYPTION_KEYS)) || {};
     return keys[driveId] || null;
   }
@@ -241,7 +244,7 @@ class StorageManager {
    * Exportiert komplettes Backup als JSON
    */
   async exportBackup() {
-    const backup = {
+    const backup: { version: string; exportedAt: string; data: Record<string, unknown> } = {
       version: STORAGE_VERSION,
       exportedAt: new Date().toISOString(),
       data: {}
@@ -257,7 +260,7 @@ class StorageManager {
   /**
    * Importiert Backup
    */
-  async importBackup(backup) {
+  async importBackup(backup: { version: string; data: Record<string, unknown> }) {
     if (backup.version !== STORAGE_VERSION) {
       console.warn('Backup-Version stimmt nicht überein');
     }
@@ -276,7 +279,7 @@ class StorageManager {
    */
   async getStorageStats() {
     let totalSize = 0;
-    const itemStats = {};
+    const itemStats: Record<string, { size: number; sizeKB: string; itemCount: number }> = {};
 
     for (const key of Object.values(StorageKeys)) {
       const value = await this.getItem(key);
@@ -301,7 +304,7 @@ class StorageManager {
   /**
    * Löscht ein Speicher-Item
    */
-  async removeItem(key) {
+  async removeItem(key: string) {
     const fullKey = `${STORAGE_PREFIX}${key}`;
     localStorage.removeItem(fullKey);
 
@@ -327,9 +330,9 @@ class StorageManager {
 
   // ============ Private Methoden ============
 
-  async _setIndexedDB(key, data) {
+  async _setIndexedDB(key: string, data: object) {
     return new Promise((resolve, reject) => {
-      const tx = this.db.transaction('storage', 'readwrite');
+      const tx = this.db!.transaction('storage', 'readwrite');
       const store = tx.objectStore('storage');
       const req = store.put({ key, ...data });
 
@@ -338,9 +341,9 @@ class StorageManager {
     });
   }
 
-  async _getIndexedDB(key) {
+  async _getIndexedDB(key: string) {
     return new Promise((resolve, reject) => {
-      const tx = this.db.transaction('storage', 'readonly');
+      const tx = this.db!.transaction('storage', 'readonly');
       const store = tx.objectStore('storage');
       const req = store.get(key);
 
@@ -352,9 +355,9 @@ class StorageManager {
     });
   }
 
-  async _removeIndexedDB(key) {
+  async _removeIndexedDB(key: string) {
     return new Promise((resolve, reject) => {
-      const tx = this.db.transaction('storage', 'readwrite');
+      const tx = this.db!.transaction('storage', 'readwrite');
       const store = tx.objectStore('storage');
       const req = store.delete(key);
 
@@ -368,7 +371,7 @@ class StorageManager {
     return profile?.username || 'SYSTEM';
   }
 
-  _handleQuotaExceeded(key) {
+  _handleQuotaExceeded(key: string) {
     console.error(`LocalStorage-Quota überschritten bei ${key}`);
     // Könnte automatisch ältere Audit-Logs löschen
     const logs = localStorage.getItem(`${STORAGE_PREFIX}${StorageKeys.AUDIT_LOG}`);

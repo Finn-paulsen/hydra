@@ -5,11 +5,32 @@
 
 import { storageManager, StorageKeys } from '../utils/storageManager';
 
+export interface RecoveryKeyMetadata {
+  driveSize?: string | number;
+  driveLabel?: string;
+  createdBy?: string;
+  [key: string]: unknown;
+}
+
+export interface RecoveryKeyData {
+  id?: string;
+  driveId: string;
+  key: string;
+  createdAt: string;
+  lastBackedUp?: string | null;
+  backedUpAt?: string;
+  expiresAt: string;
+  status: string;
+  backupLocations: string[];
+  encrypted?: boolean;
+  metadata?: RecoveryKeyMetadata;
+}
+
 class RecoveryKeyManager {
   /**
    * Generiert einen zufälligen Recovery Key
    */
-  static generateRecoveryKey(driveId, length = 48) {
+  static generateRecoveryKey(_driveId: string, length = 48) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let key = '';
     for (let i = 0; i < length; i++) {
@@ -17,16 +38,16 @@ class RecoveryKeyManager {
     }
     
     // Formatiere in 6er-Blöcke (Microsoft Standard)
-    return key.match(/.{1,6}/g).join('-');
+    return (key.match(/.{1,6}/g) ?? []).join('-');
   }
 
   /**
    * Erstellt einen neuen Recovery Key und speichert ihn
    */
-  static async createRecoveryKey(driveId, metadata = {}) {
+  static async createRecoveryKey(driveId: string, metadata: RecoveryKeyMetadata = {}): Promise<RecoveryKeyData> {
     const key = this.generateRecoveryKey(driveId);
     
-    const recoveryKeyData = {
+    const recoveryKeyData: RecoveryKeyData = {
       id: `key_${driveId}_${Date.now()}`,
       driveId,
       key,
@@ -51,22 +72,22 @@ class RecoveryKeyManager {
   /**
    * Gibt einen Recovery Key zurück
    */
-  static async getRecoveryKey(driveId) {
+  static async getRecoveryKey(driveId: string): Promise<RecoveryKeyData | null> {
     return await storageManager.getRecoveryKey(driveId);
   }
 
   /**
    * Listet alle Recovery Keys auf
    */
-  static async listAllRecoveryKeys() {
-    const keys = await storageManager.getItem(StorageKeys.ENCRYPTION_KEYS) || {};
+  static async listAllRecoveryKeys(): Promise<RecoveryKeyData[]> {
+    const keys: Record<string, RecoveryKeyData> = await storageManager.getItem(StorageKeys.ENCRYPTION_KEYS) || {};
     return Object.values(keys).filter(k => k && k.key);
   }
 
   /**
    * Sichert einen Recovery Key - kopiert ihn zu lokalen/entfernten Backup-Orten
    */
-  static async backupRecoveryKey(driveId, locations = ['local', 'cloud']) {
+  static async backupRecoveryKey(driveId: string, locations = ['local', 'cloud']) {
     const key = await this.getRecoveryKey(driveId);
     if (!key) {
       throw new Error(`Kein Recovery Key für ${driveId} gefunden`);
@@ -94,12 +115,12 @@ class RecoveryKeyManager {
   /**
    * Exportiert Recovery Key als Datei (CSV/JSON)
    */
-  static async exportRecoveryKeys(driveIds = null, format = 'json') {
+  static async exportRecoveryKeys(driveIds: string[] | null = null, format = 'json') {
     const keys = driveIds 
       ? await Promise.all(driveIds.map(id => this.getRecoveryKey(id)))
       : await this.listAllRecoveryKeys();
 
-    const validKeys = keys.filter(k => k);
+    const validKeys = keys.filter((k): k is RecoveryKeyData => !!k);
 
     if (format === 'csv') {
       return this._generateCSV(validKeys);
@@ -111,8 +132,8 @@ class RecoveryKeyManager {
   /**
    * Importiert Recovery Keys aus einer Datei
    */
-  static async importRecoveryKeys(fileContent, format = 'json') {
-    let keys = [];
+  static async importRecoveryKeys(fileContent: string, format = 'json') {
+    let keys: RecoveryKeyData[] = [];
     
     try {
       if (format === 'json') {
@@ -121,7 +142,7 @@ class RecoveryKeyManager {
         keys = this._parseCSV(fileContent);
       }
     } catch (e) {
-      throw new Error(`Fehler beim Parsen der Datei: ${e.message}`);
+      throw new Error(`Fehler beim Parsen der Datei: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     let imported = 0;
@@ -143,19 +164,21 @@ class RecoveryKeyManager {
   /**
    * Validiert einen Recovery Key
    */
-  static validateRecoveryKey(key) {
+  static validateRecoveryKey(key?: string | null) {
     if (!key) return false;
     
-    // Format: XXX-XXX-XXX-XXX-XXX-XXX-XXX-XXX (48 Zeichen + 7 Dashes)
-    const pattern = /^[A-Z0-9]{3}(?:-[A-Z0-9]{3}){7}$/;
+    // Format: 8 Blöcke à 6 Zeichen, getrennt durch Bindestriche (48 Zeichen + 7 Dashes)
+    const pattern = /^[A-Z0-9]{6}(?:-[A-Z0-9]{6}){7}$/;
     return pattern.test(key.toUpperCase());
   }
 
   /**
    * Löscht einen Recovery Key nach Bestätigung
    */
-  static async deleteRecoveryKey(driveId) {
-    await storageManager.removeItem(StorageKeys.ENCRYPTION_KEYS);
+  static async deleteRecoveryKey(driveId: string) {
+    const keys: Record<string, RecoveryKeyData> = await storageManager.getItem(StorageKeys.ENCRYPTION_KEYS) || {};
+    delete keys[driveId];
+    await storageManager.setItem(StorageKeys.ENCRYPTION_KEYS, keys);
     
     await storageManager.addAuditLog('recovery_key_deleted', {
       driveId,
@@ -177,7 +200,7 @@ class RecoveryKeyManager {
       keys: keys.map(k => ({
         driveId: k.driveId,
         status: k.status,
-        backedUp: k.backupLocations?.length > 0,
+        backedUp: (k.backupLocations?.length ?? 0) > 0,
         expiresAt: k.expiresAt,
         createdAt: k.createdAt
       }))
@@ -190,7 +213,7 @@ class RecoveryKeyManager {
    * Erstellt einen sicheren QR-Code für einen Recovery Key
    * (würde in echten Szenarien eine QR-Library nutzen)
    */
-  static generateRecoveryKeyQR(driveId, key) {
+  static generateRecoveryKeyQR(driveId: string, key: string) {
     const qrData = {
       drive: driveId,
       key: key,
@@ -266,11 +289,11 @@ Diesen Report sicher aufbewahren!
     return date.toISOString();
   }
 
-  static _generateJSON(keys) {
+  static _generateJSON(keys: RecoveryKeyData[]) {
     return JSON.stringify(keys, null, 2);
   }
 
-  static _generateCSV(keys) {
+  static _generateCSV(keys: RecoveryKeyData[]) {
     const headers = ['DriveId', 'Key', 'Status', 'CreatedAt', 'ExpiresAt'];
     const rows = keys.map(k => [
       k.driveId,
@@ -288,7 +311,7 @@ Diesen Report sicher aufbewahren!
     return csv;
   }
 
-  static _parseCSV(csvContent) {
+  static _parseCSV(csvContent: string): RecoveryKeyData[] {
     const lines = csvContent.trim().split('\n');
     const headers = lines[0].split(',');
 
@@ -299,7 +322,8 @@ Diesen Report sicher aufbewahren!
         key: values[1],
         status: values[2],
         createdAt: values[3],
-        expiresAt: values[4]
+        expiresAt: values[4],
+        backupLocations: []
       };
     });
   }

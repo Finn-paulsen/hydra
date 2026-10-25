@@ -6,14 +6,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './EncryptionSimulator.css';
 
-export default function EncryptionSimulator({ driveId = 'C:', driveSize = 256 }) {
+interface EncryptionSimulatorProps {
+  driveId?: string;
+  driveSize?: number;
+}
+
+interface EncryptionLog {
+  id: number;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error' | 'system';
+  timestamp: string;
+}
+
+interface EncryptionStep {
+  percent: number;
+  message: string;
+  duration: number;
+}
+
+export default function EncryptionSimulator({ driveId = 'C:', driveSize = 256 }: EncryptionSimulatorProps) {
   const [isEncrypting, setIsEncrypting] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [logs, setLogs] = useState([]);
-  const logsRef = useRef(null);
-  const simulationRef = useRef(null);
+  const [logs, setLogs] = useState<EncryptionLog[]>([]);
+  const logsRef = useRef<HTMLDivElement | null>(null);
+  const simulationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const encryptionSteps = [
+  const encryptionSteps: EncryptionStep[] = [
     { percent: 0, message: 'Initialisiere BitLocker-Treiber...', duration: 1000 },
     { percent: 5, message: 'TPM 2.0 Modul aktiviert', duration: 800 },
     { percent: 10, message: 'Schlüsselerzeugung gestartet...', duration: 1500 },
@@ -31,7 +49,7 @@ export default function EncryptionSimulator({ driveId = 'C:', driveSize = 256 })
     { percent: 100, message: 'BitLocker-Verschlüsselung erfolgreich abgeschlossen', duration: 500 }
   ];
 
-  const addLog = (message, type = 'info') => {
+  const addLog = (message: string, type: EncryptionLog['type'] = 'info') => {
     setLogs(prevLogs => [
       ...prevLogs,
       {
@@ -86,7 +104,7 @@ export default function EncryptionSimulator({ driveId = 'C:', driveSize = 256 })
     setProgress(0);
   };
 
-  const getLogColor = (type) => {
+  const getLogColor = (type: EncryptionLog['type']): string => {
     switch (type) {
       case 'success': return '#00ff00';
       case 'warning': return '#ffff00';

@@ -1,16 +1,34 @@
 import React, { useEffect, useRef } from 'react'
 
-export default function BootSequence({ onFinish }){
-  const containerRef = useRef(null)
-  const timers = useRef([])
-  const listeners = useRef([])
+interface BootSequenceProps {
+  onFinish?: () => void
+}
+
+interface LineOptions {
+  className?: string
+  instant?: boolean
+  flicker?: boolean
+  speed?: number
+}
+
+interface PromptResult {
+  success: boolean
+  attempts?: number
+  id?: string
+}
+
+export default function BootSequence({ onFinish }: BootSequenceProps){
+  const containerRef = useRef<HTMLDivElement>(null)
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
+  const listeners = useRef<((e: KeyboardEvent) => void)[]>([])
 
   useEffect(()=>{
-    const container = containerRef.current
-    if(!container) return
+    const containerEl = containerRef.current
+    if(!containerEl) return
+    const container: HTMLDivElement = containerEl
 
     // helper to append a line element
-    function appendLine(text, opts = {}){
+    function appendLine(text: string, opts: LineOptions = {}): Promise<void>{
       const line = document.createElement('div')
       line.className = 'boot-line'
       if(opts.className) line.classList.add(opts.className)
@@ -23,7 +41,7 @@ export default function BootSequence({ onFinish }){
         return Promise.resolve()
       }
 
-      return new Promise(resolve=>{
+      return new Promise<void>(resolve=>{
         let i = 0
         const speed = opts.speed ?? 18
         const t = setInterval(()=>{
@@ -40,28 +58,28 @@ export default function BootSequence({ onFinish }){
       })
     }
 
-    function startFlicker(el){
+    function startFlicker(el: HTMLElement){
       el.classList.add('flicker-brief')
       const t = setTimeout(()=>el.classList.remove('flicker-brief'), 420)
       timers.current.push(t)
     }
 
     // wait helper
-    function wait(ms){
-      return new Promise(resolve=>{const t = setTimeout(resolve, ms); timers.current.push(t)})
+    function wait(ms: number){
+      return new Promise<void>(resolve=>{const t = setTimeout(resolve, ms); timers.current.push(t)})
     }
 
   // prompt for interactive override; resolves with {success, attempts}
   function promptForOverride(maxAttempts = 3, enableSound = true){
-      return new Promise(resolve=>{
+      return new Promise<PromptResult>(resolve=>{
         let attempts = 0
 
         // prepare audio context for subtle key click
-        let audioCtx = null
+        let audioCtx: AudioContext | null = null
         function playKeyClick(){
           if(!enableSound) return
           try{
-            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+            if(!audioCtx) audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
             const o = audioCtx.createOscillator()
             const g = audioCtx.createGain()
             o.type = 'square'
@@ -101,11 +119,11 @@ export default function BootSequence({ onFinish }){
           }, 420)
         }
 
-        function cleanupPromptListeners(fn){
+        function cleanupPromptListeners(fn: (e: KeyboardEvent) => void){
           window.removeEventListener('keydown', fn)
         }
 
-        function onKey(e){
+        function onKey(e: KeyboardEvent){
           if(e.key === 'Backspace'){
             e.preventDefault()
             buffer = buffer.slice(0,-1)
@@ -161,7 +179,7 @@ export default function BootSequence({ onFinish }){
 
     // simple user id prompt - accepts a small allowlist, otherwise counts as unknown
     function promptForUserId(maxAttempts = 3, allowList = ['fpaulsen','admin','root']){
-      return new Promise(resolve=>{
+      return new Promise<PromptResult>(resolve=>{
         let attempts = 0
 
         function create(){
@@ -184,7 +202,7 @@ export default function BootSequence({ onFinish }){
         let state = create()
         let buffer = ''
 
-        function onKey(e){
+        function onKey(e: KeyboardEvent){
           if(e.key === 'Backspace'){ e.preventDefault(); buffer = buffer.slice(0,-1); state.userSpan.textContent = buffer; container.scrollTop = container.scrollHeight; return }
           if(e.key === 'Enter'){
             e.preventDefault()
@@ -213,7 +231,7 @@ export default function BootSequence({ onFinish }){
 
     // passphrase prompt - masked input, strict match, no tolerance
     function promptForPassphrase(maxAttempts = 3, correct = 'blackvault-1979'){
-      return new Promise(resolve=>{
+      return new Promise<PromptResult>(resolve=>{
         let attempts = 0
 
         function create(){
@@ -236,7 +254,7 @@ export default function BootSequence({ onFinish }){
         let state = create()
         let buffer = ''
 
-        function onKey(e){
+        function onKey(e: KeyboardEvent){
           if(e.key === 'Backspace'){ e.preventDefault(); buffer = buffer.slice(0,-1); state.userSpan.textContent = '•'.repeat(buffer.length); container.scrollTop = container.scrollHeight; return }
           if(e.key === 'Enter'){
             e.preventDefault()
@@ -265,8 +283,8 @@ export default function BootSequence({ onFinish }){
     }
 
     // 2FA prompt - generates a one-time code and requires exact numeric entry
-    function promptFor2FA(maxAttempts = 3){
-      return new Promise(resolve=>{
+    function promptFor2FA(maxAttempts = 3): Promise<PromptResult>{
+      return new Promise<PromptResult>(resolve=>{
         const token = String(Math.floor(100000 + Math.random()*900000))
         appendLine('SENDING 2FA TOKEN TO REGISTERED DEVICE...\n', {speed:18}).then(()=>{
             // show debug token for local testing (keep until flow completes to avoid timing issues)
@@ -294,7 +312,7 @@ export default function BootSequence({ onFinish }){
 
           let attempts = 0
           let buffer = ''
-          function onKey(e){
+          function onKey(e: KeyboardEvent){
             if(e.key === 'Backspace'){ e.preventDefault(); buffer = buffer.slice(0,-1); userSpan.textContent = buffer; container.scrollTop = container.scrollHeight; return }
             if(e.key === 'Enter'){
               e.preventDefault()
@@ -402,7 +420,7 @@ export default function BootSequence({ onFinish }){
           }
       }
 
-      await appendLine(`MATCH: ${uidRes.id.toUpperCase()}\n`, {speed:18})
+      await appendLine(`MATCH: ${(uidRes.id as string).toUpperCase()}\n`, {speed:18})
       await appendLine('CREDENTIAL LEVEL: DEFINED\n', {speed:18})
       await wait(240)
 
@@ -496,10 +514,10 @@ export default function BootSequence({ onFinish }){
     }
 
     // request override flow: user presses R to request, system issues a code, user enters code
-    function requestOverrideFlow(){
-      return new Promise(resolve=>{
+    function requestOverrideFlow(): Promise<boolean>{
+      return new Promise<boolean>(resolve=>{
         appendLine('ALTERNATIVE: REQUEST OVERRIDE CODE (PRESS R)\n', {speed:18, className:'warn'}).then(()=>{
-          function onKey(e){
+          function onKey(e: KeyboardEvent){
             if(e.key && e.key.toLowerCase() === 'r'){
               window.removeEventListener('keydown', onKey)
               proceedRequest()
@@ -546,7 +564,7 @@ export default function BootSequence({ onFinish }){
 
                 let attempts = 0
                 let buffer = ''
-                function onKeyCode(e){
+                function onKeyCode(e: KeyboardEvent){
                   if(e.key === 'Backspace'){ e.preventDefault(); buffer = buffer.slice(0,-1); userSpan.textContent = buffer; container.scrollTop = container.scrollHeight; return }
                   if(e.key === 'Enter'){
                     e.preventDefault()

@@ -1,6 +1,22 @@
 import React, { useRef } from "react";
 
-export default function DraggableWindow({
+export interface DraggableWindowData {
+  title?: string | null;
+  pos: { x: number; y: number };
+  [key: string]: unknown;
+}
+
+interface DraggableWindowProps<T extends DraggableWindowData> {
+  window: T;
+  getWindowContent?: (window: T) => React.ReactNode;
+  onFocus?: () => void;
+  onMove: (pos: { x: number; y: number }) => void;
+  onClose?: () => void;
+  onMinimize?: () => void;
+  z?: number;
+}
+
+export default function DraggableWindow<T extends DraggableWindowData>({
   window,
   getWindowContent,
   onFocus,
@@ -8,12 +24,12 @@ export default function DraggableWindow({
   onClose,
   onMinimize,
   z
-}) {
+}: DraggableWindowProps<T>) {
   const dragging   = useRef(false);
   const dragStart  = useRef({ x: 0, y: 0 });
   const windowStart = useRef({ x: 0, y: 0 });
 
-  const handleMouseDown = (e) => {
+  const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
     onFocus && onFocus();
     dragging.current = true;
@@ -23,7 +39,7 @@ export default function DraggableWindow({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: MouseEvent) => {
     if (!dragging.current) return;
     const dx = e.clientX - dragStart.current.x;
     const dy = e.clientY - dragStart.current.y;

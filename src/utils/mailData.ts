@@ -1,7 +1,15 @@
 // Dummy Mail Data Generator using faker
-import { faker } from '@faker-js/faker';
 
-export function generateMailData(count = 10) {
+export interface MailItem {
+  id: string;
+  from: string;
+  subject: string;
+  date: string;
+  body: string;
+}
+
+export async function generateMailData(count = 10): Promise<MailItem[]> {
+  const { faker } = await import('@faker-js/faker');
   return Array.from({ length: count }).map(() => ({
     id: faker.string.uuid(),
     from: faker.internet.email(),

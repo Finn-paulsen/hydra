@@ -2,6 +2,12 @@ import React, { useState } from 'react'
 
 // Dummy-Daten für Aufnahmen (pro Jahr/Monat/Tag)
 // Realistisches Zeitraster: 4 Kameras, alle 6 Stunden, für jeden Tag
+interface ArchiveRecording { id: string; time: string; src: string; type: string }
+interface ArchiveCamera { name: string; ort: string; aufnahmen: ArchiveRecording[] }
+interface SearchDate { year: number; month: number; day: number }
+type SelectedRecording = ArchiveRecording & { name: string; ort: string };
+type ArchiveIndex = Record<number, Record<number, Record<number, ArchiveCamera[]>>>;
+
 const KAMERAS = [
   { name: 'Kamera 1', ort: 'Parkplatz', src: 'https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif', type: 'gif' },
   { name: 'Kamera 2', ort: 'Eingang', src: 'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif', type: 'gif' },
@@ -9,8 +15,8 @@ const KAMERAS = [
   { name: 'Kamera 4', ort: 'Lobby', src: 'https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif', type: 'gif' }
 ]
 const ZEITEN = ['00:00','06:00','12:00','18:00']
-function generateArchive() {
-  const archive = {}
+function generateArchive(): ArchiveIndex {
+  const archive: ArchiveIndex = {}
   for (let year = 2002; year <= 2026; year++) {
     archive[year] = {}
     for (let month = 1; month <= 12; month++) {
@@ -37,12 +43,12 @@ const ARCHIVE = generateArchive()
 
 
 export default function ArchiveViewer() {
-  const [selected, setSelected] = useState(null)
+  const [selected, setSelected] = useState<SelectedRecording | null>(null)
   const [search, setSearch] = useState("");
-  const [searchDate, setSearchDate] = useState(null);
+  const [searchDate, setSearchDate] = useState<SearchDate | null>(null);
 
   // Hilfsfunktion: Datum parsen (TT.MM.JJJJ)
-  function parseDate(input) {
+  function parseDate(input: string): SearchDate | null {
     const match = input.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
     if (!match) return null;
     const day = parseInt(match[1], 10);
@@ -55,7 +61,7 @@ export default function ArchiveViewer() {
   }
 
   // Ergebnisse für das eingegebene Datum suchen
-  let results = [];
+  let results: ArchiveCamera[] = [];
   if (searchDate) {
     const { year, month, day } = searchDate;
     if (

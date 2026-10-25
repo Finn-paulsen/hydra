@@ -4,7 +4,22 @@
  */
 
 // Mock Datenbank mit geografischen Daten
-const MOCK_DATABASE = {
+export interface GeoPoint {
+  lat: number;
+  lng: number;
+}
+
+export interface CaseData {
+  id: string;
+  title: string;
+  location: GeoPoint & { name: string };
+  status: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  persons: number;
+  createdAt: string;
+}
+
+const MOCK_DATABASE: { cases: CaseData[]; persons: Record<string, string>[] } = {
   cases: [
     {
       id: '4711',
@@ -143,7 +158,7 @@ export class LocationQueryService {
    * @param {number} lng - Längenggrad
    * @param {number} radiusKm - Suchradius in Kilometern
    */
-  static findCasesByLocation(lat, lng, radiusKm = 50) {
+  static findCasesByLocation(lat: number, lng: number, radiusKm = 50) {
     return MOCK_DATABASE.cases.filter(caseData => {
       const distance = this._calculateDistance(
         lat, lng,
@@ -156,7 +171,7 @@ export class LocationQueryService {
   /**
    * Findet Fälle nach Behörde
    */
-  static findCasesByPoliceStation(locationName) {
+  static findCasesByPoliceStation(locationName: string) {
     return MOCK_DATABASE.cases.filter(caseData => 
       caseData.location.name === locationName
     );
@@ -165,11 +180,11 @@ export class LocationQueryService {
   /**
    * Suche nach aktiven Fällen in einer Region
    */
-  static findActiveCases(lat, lng, radiusKm = 100) {
+  static findActiveCases(lat: number, lng: number, radiusKm = 100) {
     return this.findCasesByLocation(lat, lng, radiusKm)
       .filter(caseData => caseData.status === 'active')
       .sort((a, b) => {
-        const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+        const priorityOrder: Record<CaseData['priority'], number> = { critical: 0, high: 1, medium: 2, low: 3 };
         return priorityOrder[a.priority] - priorityOrder[b.priority];
       });
   }
@@ -177,7 +192,7 @@ export class LocationQueryService {
   /**
    * Findet kritische/hochpriorite Fälle
    */
-  static findCriticalCases(lat, lng, radiusKm = 200) {
+  static findCriticalCases(lat: number, lng: number, radiusKm = 200) {
     return this.findCasesByLocation(lat, lng, radiusKm)
       .filter(caseData => 
         caseData.priority === 'critical' || caseData.priority === 'high'
@@ -188,7 +203,7 @@ export class LocationQueryService {
   /**
    * Gibt statistiken für eine Region
    */
-  static getRegionStats(lat, lng, radiusKm = 100) {
+  static getRegionStats(lat: number, lng: number, radiusKm = 100) {
     const cases = this.findCasesByLocation(lat, lng, radiusKm);
     
     return {
@@ -206,12 +221,12 @@ export class LocationQueryService {
   /**
    * Korreliert Fälle zwischen verschiedenen Regionen
    */
-  static correlateRegionalCases(location1, location2, radiusKm = 100) {
+  static correlateRegionalCases(location1: GeoPoint, location2: GeoPoint, radiusKm = 100) {
     const cases1 = this.findCasesByLocation(location1.lat, location1.lng, radiusKm);
     const cases2 = this.findCasesByLocation(location2.lat, location2.lng, radiusKm);
     
     // Suche nach Überschneidungen (z.B. gleiche Personen, ähnliche Muster)
-    const correlations = [];
+    const correlations: { case1: string; case2: string; similarity: number; reason: string }[] = [];
     cases1.forEach(c1 => {
       cases2.forEach(c2 => {
         // Mock: Wenn Personen-Count ähnlich - könnte Zusammenhang sein
@@ -236,7 +251,7 @@ export class LocationQueryService {
   /**
    * Exportiert Abfrageergebnis
    */
-  static exportQueryResult(caseList) {
+  static exportQueryResult(caseList: CaseData[]) {
     return {
       queriedAt: new Date().toISOString(),
       resultCount: caseList.length,
@@ -256,7 +271,7 @@ export class LocationQueryService {
   /**
    * Hilfsfunktion: Berechnet Entfernung zwischen zwei Geopunkten (Haversine)
    */
-  static _calculateDistance(lat1, lon1, lat2, lon2) {
+  static _calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
     const R = 6371; // Erdradius in Kilometern
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -271,7 +286,7 @@ export class LocationQueryService {
   /**
    * Bestimmt die Klassifikationsstufe basierend auf Fallanzahl/typ
    */
-  static _calculateClassificationLevel(cases) {
+  static _calculateClassificationLevel(cases: CaseData[]) {
     const criticalCount = cases.filter(c => c.priority === 'critical').length;
     if (criticalCount >= 3) return '[STRENG GEHEIM]';
     if (criticalCount >= 1 || cases.length >= 5) return '[GEHEIM]';

@@ -1,8 +1,11 @@
 import React from 'react';
 import FileIcon from './FileIcon';
 import './fileItem.css';
+import type { FileEntry } from './types';
 
-export default function FileItem({ item, isSelected, isFocused, onClick, onDoubleClick }) {
+interface FileItemProps { item: FileEntry; isSelected: boolean; isFocused: boolean; onClick: () => void; onDoubleClick: () => void; }
+
+export default function FileItem({ item, isSelected, isFocused, onClick, onDoubleClick }: FileItemProps) {
   return (
     <div
       className={`file-item${isSelected ? ' selected' : ''}${isFocused ? ' focused' : ''}`}

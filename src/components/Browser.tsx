@@ -1,18 +1,30 @@
 import React, { useState, useRef } from 'react'
 
-function safeId(){return Math.random().toString(36).slice(2,9)}
+interface BrowserHistoryEntry {
+  id: string;
+  url: string;
+  live?: boolean;
+  ts: number;
+  html: string;
+}
+
+function safeId(): string { return Math.random().toString(36).slice(2,9) }
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 export default function Browser(){
-  const [url, setUrl] = useState('tomate3.com')
-  const [content, setContent] = useState('<div class="card"><h3>Willkommen</h3><p>Gib eine Adresse ein, z. B. <code>tomate3.com</code></p></div>')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [history, setHistory] = useState([])
-  const [pos, setPos] = useState(-1)
-  const [live, setLive] = useState(false)
-  const iframeRef = useRef(null)
+  const [url, setUrl] = useState<string>('tomate3.com')
+  const [content, setContent] = useState<string>('<div class="card"><h3>Willkommen</h3><p>Gib eine Adresse ein, z. B. <code>tomate3.com</code></p></div>')
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+  const [history, setHistory] = useState<BrowserHistoryEntry[]>([])
+  const [pos, setPos] = useState<number>(-1)
+  const [live, setLive] = useState<boolean>(false)
+  const iframeRef = useRef<HTMLDivElement | null>(null)
 
-  function addHistory(entry){
+  function addHistory(entry: BrowserHistoryEntry){
     const h = history.slice(0,pos+1)
     h.push(entry)
     setHistory(h)
@@ -42,8 +54,9 @@ export default function Browser(){
         addHistory({id:safeId(),url:host,live:false,ts:Date.now(),html:text})
       }
     }catch(e){
-      setError(e.message)
-      setContent(`<div class=\"card\"><h3>Fehler</h3><p>${e.message}</p><p>Wenn du Live‑Inhalte wünschst: lokal Proxy starten (siehe /scripts/proxy.mjs)</p></div>`)
+      const message = errorMessage(e);
+      setError(message)
+      setContent(`<div class=\"card\"><h3>Fehler</h3><p>${message}</p><p>Wenn du Live‑Inhalte wünschst: lokal Proxy starten (siehe /scripts/proxy.mjs)</p></div>`)
     }finally{setLoading(false)}
   }
 
@@ -68,17 +81,17 @@ export default function Browser(){
 
   function archiveCurrent(){
     try{
-      const store = JSON.parse(localStorage.getItem('browserArchive')||'[]')
+      const store = JSON.parse(localStorage.getItem('browserArchive')||'[]') as BrowserHistoryEntry[] as BrowserHistoryEntry[]
       const entry = {id:safeId(),url,ts:Date.now(),html:content}
       store.unshift(entry)
       localStorage.setItem('browserArchive', JSON.stringify(store))
       alert('Seite zum Archiv hinzugefügt')
-    }catch(e){alert('Archiv Fehler: '+e.message)}
+    }catch(e){alert('Archiv Fehler: '+errorMessage(e))}
   }
 
   function showArchive(){
     const store = JSON.parse(localStorage.getItem('browserArchive')||'[]')
-    const list = store.map(s=>`${new Date(s.ts).toLocaleString()} — ${s.url}`).join('\n')
+    const list = store.map((s: BrowserHistoryEntry)=>`${new Date(s.ts).toLocaleString()} — ${s.url}`).join('\n')
     if(!list) alert('Archiv leer')
     else alert(list)
   }
@@ -105,7 +118,7 @@ export default function Browser(){
           <button onClick={()=>{load()}} title="Laden">⟳</button>
         </div>
         <label htmlFor="browser-address">Adresse:
-          <input id="browser-address" className="address" name="address" value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')load()}} />
+          <input id="browser-address" className="address" name="address" value={url} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setUrl(e.target.value)} onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>)=>{if(e.key==='Enter')load()}} />
         </label>
         <label className="live-toggle"><input type="checkbox" checked={live} onChange={e=>setLive(e.target.checked)} /> Live (lokaler Proxy)</label>
         <button onClick={archiveCurrent}>Archiv+</button>

@@ -1,20 +1,21 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import SurveillanceCenter from './SurveillanceCenter'
 import ArchiveViewer from './ArchiveViewer'
 import FileEditor from './FileEditor'
-import GovTerminal from './GovTerminal.jsx'
 import DraggableWindow from './DraggableWindow'
 import UserManager from './UserManager'
 import './desktop.css'
 
+const GovTerminal = lazy(() => import('./GovTerminal'))
+
 function makeId() { return Math.random().toString(36).slice(2, 9) }
 
 // ─── Audio ────────────────────────────────────────────────────────────────────
-let _desktopAudioCtx = null
+let _desktopAudioCtx: AudioContext | null = null
 function getDesktopAudioCtx() {
   try {
-    const AC = window.AudioContext || window.webkitAudioContext
+    const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!AC) return null
     if (!_desktopAudioCtx) _desktopAudioCtx = new AC()
     if (_desktopAudioCtx.state === 'suspended') _desktopAudioCtx.resume().catch(() => {})
@@ -46,7 +47,7 @@ function playXPStartupSound() {
 
     // XP-Startup: charakteristische aufsteigende Melodie
     // Noten: E4, G4, A4, E5 (vereinfacht)
-    const notes = [
+    const notes: { freq: number; start: number; dur: number; type: OscillatorType; vol: number }[] = [
       { freq: 329.63, start: 0.0,  dur: 0.35, type: 'sine',     vol: 0.06  },  // E4
       { freq: 392.00, start: 0.3,  dur: 0.35, type: 'sine',     vol: 0.06  },  // G4
       { freq: 440.00, start: 0.6,  dur: 0.45, type: 'sine',     vol: 0.07  },  // A4
@@ -74,7 +75,46 @@ function playXPStartupSound() {
 }
 
 // ─── Dateistruktur für Explorer und Suche ────────────────────────────────────
-const FILE_TREE = [
+interface FileEntry {
+  name: string
+  type: string
+  path: string
+  icon: string
+  size?: string
+  modified?: string
+}
+
+type WindowContent = React.ReactNode | (() => React.ReactNode)
+
+type WindowItem = {
+  id: string
+  title?: string | null
+  type: string
+  content?: WindowContent
+  pos: { x: number; y: number }
+  z: number
+  minimized: boolean
+}
+
+interface OpenWindowOptions {
+  title?: string | null
+  type?: string | null
+  content?: WindowContent
+}
+
+interface ModalState {
+  type: string
+  title?: string
+  msg?: string
+}
+
+interface FensterManagerProps {
+  bootComplete?: boolean
+  onLogout?: () => void
+  onDeepAccess?: () => void
+}
+
+const FILE_TREE: FileEntry[] = [
   // Laufwerke
   { name: 'Lokaler Datenträger (C:)', type: 'drive', path: 'C:\\', icon: '💾' },
   { name: 'Lokaler Datenträger (D:)', type: 'drive', path: 'D:\\', icon: '💽' },
@@ -131,21 +171,21 @@ const START_PROGRAMS = [
 ]
 
 // ─── Windows XP Explorer ──────────────────────────────────────────────────────
-function ExplorerWindow({ onOpenFile }) {
+function ExplorerWindow(_props: { onOpenFile?: unknown }) {
   const [currentPath, setCurrentPath] = useState('C:\\')
-  const [selectedItem, setSelectedItem] = useState(null)
+  const [selectedItem, setSelectedItem] = useState<number | null>(null)
   const [history, setHistory] = useState(['C:\\'])
   const [historyIdx, setHistoryIdx] = useState(0)
   const [viewMode, setViewMode] = useState('list') // 'icons' | 'list' | 'details'
 
   // Ordnerstruktur aufbauen
-  const getDrives = () => [
+  const getDrives = (): FileEntry[] => [
     { name: 'Lokaler Datenträger (C:)', type: 'drive', path: 'C:\\', icon: '💾', size: '40 GB' },
     { name: 'Lokaler Datenträger (D:)', type: 'drive', path: 'D:\\', icon: '💽', size: '80 GB' },
     { name: 'Netzlaufwerk (H:)',        type: 'drive', path: 'H:\\', icon: '🌐', size: '100 GB' },
   ]
 
-  const getItemsForPath = (path) => {
+  const getItemsForPath = (path: string): FileEntry[] => {
     if (path === 'C:\\' || path === '') {
       return [
         { name: 'GOV', type: 'folder', path: 'C:\\GOV', icon: '📁', modified: '14.03.2003' },
@@ -233,7 +273,7 @@ function ExplorerWindow({ onOpenFile }) {
   const isRoot = currentPath === '' || currentPath === 'Arbeitsplatz'
   const items = isRoot ? getDrives() : getItemsForPath(currentPath)
 
-  function navigate(path) {
+  function navigate(path: string) {
     const newHistory = history.slice(0, historyIdx + 1)
     newHistory.push(path)
     setHistory(newHistory)
@@ -435,9 +475,9 @@ function ExplorerWindow({ onOpenFile }) {
 }
 
 // ─── Suche-Fenster (XP-Stil) ──────────────────────────────────────────────────
-function SearchWindow({ onClose }) {
+function SearchWindow(_props: { onClose?: () => void }) {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
+  const [results, setResults] = useState<FileEntry[]>([])
   const [searched, setSearched] = useState(false)
   const [searching, setSearching] = useState(false)
   const [searchIn, setSearchIn] = useState('C:\\')
@@ -536,26 +576,26 @@ function SearchWindow({ onClose }) {
 }
 
 // ─── Haupt-Komponente ─────────────────────────────────────────────────────────
-export default function FensterManager({ bootComplete, onLogout, onDeepAccess }) {
-  const [windows, setWindows]     = useState([])
+export default function FensterManager({ bootComplete, onLogout, onDeepAccess }: FensterManagerProps) {
+  const [windows, setWindows]     = useState<WindowItem[]>([])
   const [zCounter, setZCounter]   = useState(10)
   const [clock, setClock]         = useState(new Date())
   const [showStart, setShowStart] = useState(false)
-  const [modal, setModal]         = useState(null)
-  const [selectedIcon, setSelectedIcon] = useState(null)
-  const [contextMenu, setContextMenu] = useState(null)
-  const startRef = useRef(null)
+  const [modal, setModal]         = useState<ModalState | null>(null)
+  const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+  const startRef = useRef<HTMLDivElement>(null)
 
   // Aktuell eingeloggter Benutzer (aus localStorage)
   const currentUser = React.useMemo(() => {
     try {
       const raw = localStorage.getItem('gov_current_user')
-      return raw ? JSON.parse(raw) : null
+      return raw ? JSON.parse(raw) as { role?: string; permissions?: string[] } : null
     } catch { return null }
   }, [])
   const isAdmin = currentUser?.role === 'admin'
   const userPermissions = currentUser?.permissions || ['read']
-  const hasPermission = (perm) => userPermissions.includes(perm)
+  const hasPermission = (perm: string) => userPermissions.includes(perm)
 
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000)
@@ -574,8 +614,8 @@ export default function FensterManager({ bootComplete, onLogout, onDeepAccess })
   // Startmenü schließen bei Klick außerhalb
   useEffect(() => {
     if (!showStart) return
-    function handleClick(e) {
-      if (startRef.current && !startRef.current.contains(e.target)) {
+    function handleClick(e: MouseEvent) {
+      if (startRef.current && !startRef.current.contains(e.target as Node)) {
         setShowStart(false)
       }
     }
@@ -591,7 +631,7 @@ export default function FensterManager({ bootComplete, onLogout, onDeepAccess })
     return () => document.removeEventListener('mousedown', handleClick)
   }, [contextMenu])
 
-  const openWindow = useCallback((opts) => {
+  const openWindow = useCallback((opts: OpenWindowOptions) => {
     playClickSound()
     setZCounter(z => {
       const newZ = z + 1
@@ -620,28 +660,28 @@ export default function FensterManager({ bootComplete, onLogout, onDeepAccess })
     setShowStart(false)
   }, [])
 
-  function getWindowContent(w) {
+  function getWindowContent(w: WindowItem) {
     if (w.type === 'explorer')    return <ExplorerWindow />
     if (w.type === 'archive')     return <ArchiveViewer />
-    if (w.type === 'terminal')    return <GovTerminal onDeepAccess={onDeepAccess} />
+    if (w.type === 'terminal')    return <Suspense fallback={null}><GovTerminal onDeepAccess={onDeepAccess} /></Suspense>
     if (w.type === 'usermgr')     return <UserManager />
     if (w.type === 'search')      return <SearchWindow onClose={() => closeWindow(w.id)} />
     return typeof w.content === 'function' ? w.content() : w.content
   }
 
-  function closeWindow(id)  { setWindows(ws => ws.filter(w => w.id !== id)) }
-  function focusWindow(id)  {
+  function closeWindow(id: string)  { setWindows(ws => ws.filter(w => w.id !== id)) }
+  function focusWindow(id: string)  {
     setZCounter(z => {
       const newZ = z + 1
       setWindows(ws => ws.map(w => w.id === id ? { ...w, z: newZ } : w))
       return newZ
     })
   }
-  function toggleMinimize(id) {
+  function toggleMinimize(id: string) {
     setWindows(ws => ws.map(w => w.id === id ? { ...w, minimized: !w.minimized } : w))
   }
 
-  function handleLogoutClick()   { onLogout() }
+  function handleLogoutClick()   { onLogout && onLogout() }
   function handleRestart()  { setModal({ type: 'restart' }); setShowStart(false) }
   function handleShutdown() { setModal({ type: 'shutdown' }); setShowStart(false) }
   function confirmRestart() { setModal(null); window.location.reload() }
@@ -650,7 +690,7 @@ export default function FensterManager({ bootComplete, onLogout, onDeepAccess })
     document.body.innerHTML = '<div style="background:#000;color:#c8c8c8;display:flex;align-items:center;justify-content:center;height:100vh;font-size:1.1rem;font-family:Tahoma,Arial,sans-serif;flex-direction:column;gap:16px;"><div>Es ist jetzt sicher, den Computer auszuschalten.</div><div style="font-size:0.85rem;opacity:0.5;">ZENTRALRECHNER  •  Bundesbehörde</div></div>'
   }
 
-  function handleDesktopRightClick(e) {
+  function handleDesktopRightClick(e: React.MouseEvent) {
     e.preventDefault()
     setContextMenu({ x: e.clientX, y: e.clientY })
   }
@@ -872,7 +912,7 @@ export default function FensterManager({ bootComplete, onLogout, onDeepAccess })
               key={w.id}
               className={'win95-taskbar-btn' + (w.minimized ? ' win95-taskbar-btn-min' : ' win95-taskbar-btn-active')}
               onClick={() => { toggleMinimize(w.id); playClickSound() }}
-              title={w.title}
+              title={w.title ?? undefined}
             >
               <span className="win95-taskbar-btn-icon">
                 {DESKTOP_ICONS.find(i => i.type === w.type)?.icon ||

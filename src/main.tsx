@@ -7,6 +7,6 @@ import './styles.css'
 // Beispiel: <button className="btn btn-primary">Click me</button>
 
 
-const container = document.getElementById('root')
+const container = document.getElementById('root')!
 const root = createRoot(container)
 root.render(<App />)

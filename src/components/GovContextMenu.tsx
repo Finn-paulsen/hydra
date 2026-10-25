@@ -1,16 +1,19 @@
 import React, { useEffect, useRef } from "react";
 import "./govContextMenu.css";
 
-export default function GovContextMenu({ x, y, options, onClose }) {
-  const menuRef = useRef();
+interface GovContextMenuOption { label: React.ReactNode; disabled?: boolean; onClick?: () => void }
+interface GovContextMenuProps { x: number; y: number; options: GovContextMenuOption[]; onClose: () => void }
+
+export default function GovContextMenu({ x, y, options, onClose }: GovContextMenuProps) {
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClick(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && e.target instanceof Node && !menuRef.current.contains(e.target)) {
         onClose();
       }
     }
-    function handleEsc(e) {
+    function handleEsc(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
     document.addEventListener("mousedown", handleClick);

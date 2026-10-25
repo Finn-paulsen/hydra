@@ -3,8 +3,33 @@ import GovContextMenu from "./GovContextMenu";
 import "./govContextMenu.css";
 import "./govExplorer.css";
 
+interface FsNode {
+  id: string;
+  name: string;
+  isFolder: boolean;
+  items: FsNode[];
+  content?: string;
+}
+
+interface ContextMenuState {
+  x: number;
+  y: number;
+  target: FsNode;
+}
+
+interface FolderProps {
+  explorer: FsNode;
+  onAdd: (folderId: string, name: string, isFolder: boolean) => void;
+  onOpenFile?: (file: FsNode) => void;
+  onContextMenu?: (e: React.MouseEvent, target: FsNode) => void;
+  renderLabel?: (item: FsNode, defaultLabel: React.ReactNode) => React.ReactNode;
+  selectedIds?: string[];
+  handleSelect?: (fileId: string, folder: FsNode) => (e: React.MouseEvent) => void;
+  handleKeyDownSelect?: (folder: FsNode) => (e: React.KeyboardEvent) => void;
+}
+
 // Beispiel-Datenstruktur (kann später dynamisch geladen werden)
-const initialData = {
+const initialData: FsNode = {
   id: "root",
   name: "GOV-ARCHIVE",
   isFolder: true,
@@ -29,26 +54,26 @@ const initialData = {
   ]
 };
 
-function Folder({ explorer, onAdd, onOpenFile, onContextMenu, renderLabel, selectedIds = [], handleSelect, handleKeyDownSelect }) {
+function Folder({ explorer, onAdd, onOpenFile, onContextMenu, renderLabel, selectedIds = [], handleSelect, handleKeyDownSelect }: FolderProps) {
   const [expanded, setExpanded] = useState(false);
   const [showInput, setShowInput] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isFolder, setIsFolder] = useState(true);
 
-  const handleAdd = (e) => {
+  const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowInput(true);
     setIsFolder(true);
   };
-  const handleAddFile = (e) => {
+  const handleAddFile = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowInput(true);
     setIsFolder(false);
   };
-  const handleInput = (e) => {
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && inputValue) {
       onAdd(explorer.id, inputValue, isFolder);
       setShowInput(false);
@@ -61,13 +86,13 @@ function Folder({ explorer, onAdd, onOpenFile, onContextMenu, renderLabel, selec
   };
 
   // Doppelklick auf Ordner: öffnen/schließen
-  const handleFolderDoubleClick = (e) => {
+  const handleFolderDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setExpanded((prev) => !prev);
   };
 
   // Doppelklick auf Datei: Editor öffnen, wenn .txt oder .html
-  const handleFileDoubleClick = (item) => {
+  const handleFileDoubleClick = (item: FsNode) => {
     if (!item.isFolder && /\.(txt|html?)$/i.test(item.name)) {
       onOpenFile && onOpenFile(item);
     }
@@ -127,7 +152,7 @@ function Folder({ explorer, onAdd, onOpenFile, onContextMenu, renderLabel, selec
   );
 }
 
-function insertNode(tree, folderId, name, isFolder) {
+function insertNode(tree: FsNode, folderId: string, name: string, isFolder: boolean): FsNode {
   if (tree.id === folderId && tree.isFolder) {
     return {
       ...tree,
@@ -154,7 +179,7 @@ import FileEditor from './FileEditor';
 
 export default function FileExplorer() {
   // Initialisierung: versuche aus localStorage zu laden
-  const [explorerData, setExplorerData] = useState(() => {
+  const [explorerData, setExplorerData] = useState<FsNode>(() => {
     const saved = localStorage.getItem('gov-archive-explorer');
     if (saved) {
       try {
@@ -169,21 +194,21 @@ export default function FileExplorer() {
   useEffect(() => {
     localStorage.setItem('gov-archive-explorer', JSON.stringify(explorerData));
   }, [explorerData]);
-  const [editorFile, setEditorFile] = useState(null);
+  const [editorFile, setEditorFile] = useState<FsNode | null>(null);
   const [editorContent, setEditorContent] = useState("");
 
-  const handleAdd = (folderId, name, isFolder) => {
+  const handleAdd = (folderId: string, name: string, isFolder: boolean) => {
     setExplorerData((prev) => insertNode(prev, folderId, name, isFolder));
   };
 
-  const handleOpenFile = (file) => {
+  const handleOpenFile = (file: FsNode) => {
     setEditorFile(file);
     setEditorContent(file.content || "");
   };
 
-  const handleSaveFile = (newContent) => {
-    function updateContent(node) {
-      if (node.id === editorFile.id) {
+  const handleSaveFile = (newContent: string) => {
+    function updateContent(node: FsNode): FsNode {
+      if (node.id === editorFile?.id) {
         return { ...node, content: newContent };
       }
       if (node.isFolder && node.items) {
@@ -201,9 +226,9 @@ export default function FileExplorer() {
   };
 
   // Kontextmenü-Logik
-  const [contextMenu, setContextMenu] = useState(null); // {x, y, target}
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
-  const handleContextMenu = (e, target) => {
+  const handleContextMenu = (e: React.MouseEvent, target: FsNode) => {
     e.preventDefault();
     setContextMenu({
       x: e.clientX,
@@ -215,16 +240,16 @@ export default function FileExplorer() {
   const closeContextMenu = () => setContextMenu(null);
 
   // Umbenennen-Status
-  const [renameTarget, setRenameTarget] = useState(null); // {id, name, isFolder}
+  const [renameTarget, setRenameTarget] = useState<FsNode | null>(null);
   const [renameValue, setRenameValue] = useState("");
 
-  const startRename = (target) => {
+  const startRename = (target: FsNode) => {
     setRenameTarget(target);
     setRenameValue(target.name);
     closeContextMenu();
   };
 
-  const handleRenameChange = (e) => setRenameValue(e.target.value);
+  const handleRenameChange = (e: React.ChangeEvent<HTMLInputElement>) => setRenameValue(e.target.value);
 
   const handleRenameSubmit = () => {
     if (!renameTarget || !renameValue.trim()) {
@@ -233,7 +258,7 @@ export default function FileExplorer() {
       return;
     }
     // Rekursiv im Explorer-Baum umbenennen
-    const updateName = (node) => {
+    const updateName = (node: FsNode): FsNode => {
       if (node.id === renameTarget.id) {
         return { ...node, name: renameValue };
       }
@@ -247,7 +272,7 @@ export default function FileExplorer() {
     setRenameValue("");
   };
 
-  const handleRenameKeyDown = (e) => {
+  const handleRenameKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleRenameSubmit();
     if (e.key === "Escape") {
       setRenameTarget(null);
@@ -256,7 +281,7 @@ export default function FileExplorer() {
   };
 
   // Hilfsfunktion: Knoten rekursiv entfernen
-  function removeNode(tree, id) {
+  function removeNode(tree: FsNode, id: string): FsNode {
     if (!tree.items) return tree;
     return {
       ...tree,
@@ -268,14 +293,14 @@ export default function FileExplorer() {
 
   // Kopieren/Einfügen-Logik für Mehrfachauswahl
   // clipboard: Array von Knoten (Dateien/Ordner)
-  const [clipboard, setClipboard] = useState([]); // Array von Knoten
+  const [clipboard, setClipboard] = useState<FsNode[]>([]);
   // Neu-Funktion: Status für Zielordner, Typ und Input
-  const [newTarget, setNewTarget] = useState(null); // {id, isFolder}
-  const [newType, setNewType] = useState(null); // 'file' | 'folder'
+  const [newTarget, setNewTarget] = useState<FsNode | null>(null);
+  const [newType, setNewType] = useState<'file' | 'folder' | null>(null);
   const [newInputValue, setNewInputValue] = useState("");
 
   // Hilfsfunktion: Knoten im Baum suchen
-  function findNode(tree, id) {
+  function findNode(tree: FsNode, id: string): FsNode | null {
     if (tree.id === id) return tree;
     if (!tree.items) return null;
     for (const item of tree.items) {
@@ -286,7 +311,7 @@ export default function FileExplorer() {
   }
 
   // Hilfsfunktion: Tiefe Kopie mit neuem ID
-  function deepCopyWithNewIds(node) {
+  function deepCopyWithNewIds(node: FsNode): FsNode {
     const newId = Date.now().toString() + Math.random().toString(36).slice(2, 7);
     if (node.isFolder) {
       return {
@@ -301,7 +326,7 @@ export default function FileExplorer() {
   }
 
   // Hilfsfunktion: Einfügen in Ordner
-  function insertNodeCopy(tree, folderId, nodeCopy) {
+  function insertNodeCopy(tree: FsNode, folderId: string, nodeCopy: FsNode): FsNode {
     if (tree.id === folderId && tree.isFolder) {
       return {
         ...tree,
@@ -334,10 +359,10 @@ export default function FileExplorer() {
       label: 'Kopieren',
       onClick: () => {
         // Wenn Mehrfachauswahl, alle ausgewählten Knoten kopieren, sonst nur das Target
-        let nodesToCopy = [];
+        let nodesToCopy: FsNode[] = [];
         if (selectedIds.length > 1) {
           // Alle ausgewählten Knoten suchen (nur Dateien/Folders auf dieser Ebene)
-          function collectNodesByIds(tree, ids, acc = []) {
+          function collectNodesByIds(tree: FsNode, ids: string[], acc: FsNode[] = []): FsNode[] {
             if (ids.includes(tree.id)) acc.push(tree);
             if (tree.items) tree.items.forEach(item => collectNodesByIds(item, ids, acc));
             return acc;
@@ -379,7 +404,7 @@ export default function FileExplorer() {
   ] : [];
 
   // Label-Renderer für Umbenennen- und Neu-Input überall
-  const renderLabel = (item, defaultLabel) => {
+  const renderLabel = (item: FsNode, defaultLabel: React.ReactNode): React.ReactNode => {
     // Umbenennen
     if (renameTarget && renameTarget.id === item.id) {
       return (
@@ -449,15 +474,15 @@ export default function FileExplorer() {
   };
 
   // Mehrfachauswahl-Logik
-  const [selectedIds, setSelectedIds] = useState([]); // Array von Datei-IDs
-  const [lastSelectedId, setLastSelectedId] = useState(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
-  function getFlatFileList(folder) {
+  function getFlatFileList(folder: FsNode) {
     return folder.items.filter(item => !item.isFolder);
   }
 
   // Handler für Auswahl mit Shift+Pfeiltasten und Klick
-  const handleSelect = (fileId, folder) => (e) => {
+  const handleSelect = (fileId: string, folder: FsNode) => (e: React.MouseEvent) => {
     if (e.shiftKey && lastSelectedId) {
       const files = getFlatFileList(folder);
       const idx1 = files.findIndex(f => f.id === lastSelectedId);
@@ -473,7 +498,7 @@ export default function FileExplorer() {
     }
   };
 
-  const handleKeyDownSelect = (folder) => (e) => {
+  const handleKeyDownSelect = (folder: FsNode) => (e: React.KeyboardEvent) => {
     if (!selectedIds.length) return;
     const files = getFlatFileList(folder);
     const currentIdx = files.findIndex(f => f.id === selectedIds[selectedIds.length - 1]);

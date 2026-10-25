@@ -8,9 +8,10 @@ import './emptyState.css';
 import './viewModes.css';
 import './pathBreadcrumb.css';
 import TextFileEditor from './TextFileEditor';
+import type { CreateItemType, FileEntry, ViewMode } from './types';
 
 // Dummy-Daten für Demo
-const initialFiles = [
+const initialFiles: FileEntry[] = [
   { name: 'Dokumente', path: 'Dokumente', isDirectory: true },
   { name: 'Testdatei.txt', path: 'Dokumente/Testdatei.txt', isDirectory: false },
   { name: 'Bilder', path: 'Bilder', isDirectory: true },
@@ -18,21 +19,21 @@ const initialFiles = [
 ];
 
 export default function FileExplorerModern() {
-  const [files, setFiles] = useState(initialFiles);
-  const [selectedPath, setSelectedPath] = useState(null);
-  const [focusedPath, setFocusedPath] = useState(null);
-  const [viewMode, setViewMode] = useState('grid');
+  const [files, setFiles] = useState<FileEntry[]>(initialFiles);
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [focusedPath, setFocusedPath] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [currentPath, setCurrentPath] = useState('');
-  const [detailsItem, setDetailsItem] = useState(null);
-  const [editorFile, setEditorFile] = useState(null);
+  const [detailsItem, setDetailsItem] = useState<FileEntry | null>(null);
+  const [editorFile, setEditorFile] = useState<FileEntry | null>(null);
 
-  const handleItemClick = (item) => {
+  const handleItemClick = (item: FileEntry) => {
     setSelectedPath(item.path);
     setFocusedPath(item.path);
     setDetailsItem(item);
   };
 
-  const handleItemDoubleClick = (item) => {
+  const handleItemDoubleClick = (item: FileEntry) => {
     if (item.isDirectory) {
       setCurrentPath(item.path);
       // Filter files für neuen Ordner
@@ -48,21 +49,22 @@ export default function FileExplorerModern() {
     }
   };
 
-  const handleCreate = (type) => {
+  const handleCreate = (type: CreateItemType) => {
     // Dummy-Logik für neue Datei/Ordner
     const name = type === 'file' ? 'NeueDatei.txt' : 'NeuerOrdner';
     const newPath = currentPath ? currentPath + '/' + name : name;
     setFiles([...files, { name, path: newPath, isDirectory: type === 'folder' }]);
   };
 
-  const handleSave = (content) => {
+  const handleSave = (content: string) => {
+    if (!editorFile) return;
     setFiles(files.map(f =>
       f.path === editorFile.path ? { ...f, content } : f
     ));
     setEditorFile(null);
   };
 
-  const handleNavigate = (path) => {
+  const handleNavigate = (path: string) => {
     setCurrentPath(path);
     setFiles(initialFiles.filter(f => f.path.startsWith(path)));
     setSelectedPath(null);

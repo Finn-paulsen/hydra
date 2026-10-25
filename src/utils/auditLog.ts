@@ -15,8 +15,28 @@ export const AuditActions = {
   DISABLE_ACCOUNT: 'disable-account'
 };
 
-export function writeAuditLog({ action, user, targetUser = null, info = null, severity = "info" }) {
-  const entry = {
+export interface AuditEntry {
+  ts: string;
+  action: string;
+  user: string;
+  targetUser: string | null;
+  info: string | null;
+  severity: string;
+  module: string;
+  ip: string;
+  ua: string;
+}
+
+export interface AuditLogInput {
+  action: string;
+  user: string;
+  targetUser?: string | null;
+  info?: string | null;
+  severity?: string;
+}
+
+export function writeAuditLog({ action, user, targetUser = null, info = null, severity = "info" }: AuditLogInput) {
+  const entry: AuditEntry = {
     ts: new Date().toISOString(),
     action,
     user,
@@ -43,9 +63,9 @@ export function writeAuditLog({ action, user, targetUser = null, info = null, se
   }
 }
 
-export function getAuditLog() {
+export function getAuditLog(): AuditEntry[] {
   try {
-    return JSON.parse(localStorage.getItem(AUDIT_KEY)) || [];
+    return JSON.parse(localStorage.getItem(AUDIT_KEY) ?? 'null') || [];
   } catch {
     return [];
   }

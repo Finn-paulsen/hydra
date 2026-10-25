@@ -2,10 +2,10 @@ import React from 'react'
 import './LoginModal.css'
 
 // ─── Erweitertes Audio-System ─────────────────────────────────────────────────
-let _policyAudioCtx = null
+let _policyAudioCtx: AudioContext | null = null
 function getPolicyAudioCtx() {
   try {
-    const AC = window.AudioContext || window.webkitAudioContext
+    const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!AC) return null
     if (!_policyAudioCtx) _policyAudioCtx = new AC()
     if (_policyAudioCtx.state === 'suspended') _policyAudioCtx.resume().catch(() => {})
@@ -14,7 +14,7 @@ function getPolicyAudioCtx() {
 }
 
 // Kurzer Klick-/Schreib-Sound (wie Drucker oder Terminal-Eingabe)
-function playTypeSound(freq, vol) {
+function playTypeSound(freq: number, vol: number) {
   try {
     const ctx = getPolicyAudioCtx(); if (!ctx) return
     const osc = ctx.createOscillator()
@@ -287,8 +287,13 @@ const STEP_DELAY = 520 // ms zwischen jeder Zeile
 const TOTAL_PHASES = 4
 
 // ─── Class Component ──────────────────────────────────────────────────────────
-class PolicyScreen extends React.Component {
-  constructor(props) {
+interface PolicyScreenProps { onDone?: () => void }
+interface PolicyScreenState { stepIdx: number; lines: string[]; currentPhase: number; currentPhaseTitle: string; loginSoundPlayed: boolean }
+
+class PolicyScreen extends React.Component<PolicyScreenProps, PolicyScreenState> {
+  timer: number | null = null
+  loginSoundTimer: number | null = null
+  constructor(props: PolicyScreenProps) {
     super(props)
     this.state = {
       stepIdx: -1,
@@ -312,7 +317,7 @@ class PolicyScreen extends React.Component {
     this.loginSoundTimer = null
   }
 
-  playStepSound(soundType, lineIdx) {
+  playStepSound(soundType: string, lineIdx: number) {
     switch (soundType) {
       case 'disk':
         playDiskAccess()
@@ -394,7 +399,7 @@ class PolicyScreen extends React.Component {
           <div className="policy-step-box">
             <div className="policy-step-title">{currentPhaseTitle}</div>
             <div className="policy-step-lines">
-              {lines.map((line, i) => (
+              {lines.map((line: string, i: number) => (
                 <div
                   key={i}
                   className={'policy-step-line' + (line === '' ? ' policy-empty-line' : '')}

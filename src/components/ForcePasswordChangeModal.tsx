@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import './terminal.css';
 
-export default function ForcePasswordChangeModal({ user, onChangePassword }) {
+interface ForcePasswordChangeModalProps {
+  user: { username: string };
+  onChangePassword: (password: string) => void;
+}
+
+export default function ForcePasswordChangeModal({ user, onChangePassword }: ForcePasswordChangeModalProps) {
   const [newPass, setNewPass] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
 
-  function handleSubmit(e) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!newPass || newPass.length < 6) {
       setError("Das neue Passwort muss mindestens 6 Zeichen lang sein.");
@@ -33,7 +38,7 @@ export default function ForcePasswordChangeModal({ user, onChangePassword }) {
               type="password"
               className="terminal-input"
               value={newPass}
-              onChange={e => setNewPass(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPass(e.target.value)}
               autoComplete="new-password"
               style={{ width: '100%', marginTop: '4px' }}
             />
@@ -43,7 +48,7 @@ export default function ForcePasswordChangeModal({ user, onChangePassword }) {
               type="password"
               className="terminal-input"
               value={confirm}
-              onChange={e => setConfirm(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirm(e.target.value)}
               autoComplete="new-password"
               style={{ width: '100%', marginTop: '4px' }}
             />

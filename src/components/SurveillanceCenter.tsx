@@ -47,9 +47,9 @@ const CAMS = [
 ];
 
 export default function SurveillanceCenter() {
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState<number | null>(null);
   const [zoom, setZoom] = useState(false);
-  const videoRef = useRef(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // --- VIDEO CONTROLS ---
   const play = () => videoRef.current?.play();

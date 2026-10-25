@@ -1,14 +1,74 @@
-function GovUserEditor({ user = defaultUser, onSave, onCancel, lastLogin, lastChangedBy }) {
-  const [form, setForm] = useState(user);
+import React, { useState } from "react";
+import { GROUPS_LIST } from "../utils/userData";
+
+export interface GovUserForm {
+  username?: string;
+  fullName?: string;
+  description?: string;
+  password?: string;
+  confirmPassword?: string;
+  role?: string;
+  permissions?: string[];
+  department?: string;
+  clearance?: string;
+  expires?: string;
+  mustChangePassword?: boolean;
+  neverExpires?: boolean;
+  disabled?: boolean;
+}
+
+interface GovUserEditorProps {
+  user?: GovUserForm;
+  onSave?: (form: GovUserForm) => void;
+  onCancel?: () => void;
+  lastLogin?: string;
+  lastChangedBy?: string;
+}
+
+const ALL_PERMISSIONS = [
+  { key: 'read', label: 'Lesen' },
+  { key: 'write', label: 'Schreiben' },
+  { key: 'delete', label: 'Löschen' },
+  { key: 'manage', label: 'Verwalten' }
+];
+
+const ROLE_PRESETS: Record<string, string[]> = {
+  Administrator: ['read', 'write', 'delete', 'manage'],
+  Benutzer: ['read', 'write'],
+  Gast: ['read']
+};
+
+const roles = Object.keys(ROLE_PRESETS);
+const clearanceLevels = ['Öffentlich', 'Vertraulich', 'Geheim', 'Streng geheim'];
+
+const defaultUser: GovUserForm = {
+  username: '',
+  fullName: '',
+  description: '',
+  password: '',
+  confirmPassword: '',
+  role: 'Benutzer',
+  permissions: [...ROLE_PRESETS.Benutzer],
+  department: '',
+  clearance: clearanceLevels[0],
+  expires: '',
+  mustChangePassword: false,
+  neverExpires: false,
+  disabled: false
+};
+
+function GovUserEditor({ user = defaultUser, onSave, onCancel, lastLogin, lastChangedBy }: GovUserEditorProps) {
+  const [form, setForm] = useState<GovUserForm>(user);
   const [pwError, setPwError] = useState("");
 
-  function handleChange(e) {
-    const { name, value, type, checked } = e.target;
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     if (name === 'role') {
       setForm(f => ({
         ...f,
         role: value,
-        permissions: [...ROLE_PRESETS[value]]
+        permissions: [...(ROLE_PRESETS[value] || [])]
       }));
     } else if (name.startsWith('perm_')) {
       const perm = name.replace('perm_', '');
@@ -25,7 +85,7 @@ function GovUserEditor({ user = defaultUser, onSave, onCancel, lastLogin, lastCh
     }
   }
 
-  function validatePassword(pw) {
+  function validatePassword(pw?: string) {
     if (!pw) return "";
     if (pw.length < 8) return "Mindestens 8 Zeichen erforderlich.";
     if (!/[A-Z]/.test(pw)) return "Mindestens 1 Großbuchstabe erforderlich.";
@@ -35,7 +95,7 @@ function GovUserEditor({ user = defaultUser, onSave, onCancel, lastLogin, lastCh
     return "";
   }
 
-  function handleSubmit(e) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (form.password !== form.confirmPassword) {
       setPwError("Passwörter stimmen nicht überein.");
@@ -106,7 +166,7 @@ function GovUserEditor({ user = defaultUser, onSave, onCancel, lastLogin, lastCh
               Abteilung/Unit:
               <select name="department" value={form.department} onChange={handleChange} required>
                 <option value="">Bitte wählen…</option>
-                {require("../utils/userData").GROUPS_LIST.map(g => (
+                {GROUPS_LIST.map(g => (
                   <option key={g.id} value={g.id}>{g.name}</option>
                 ))}
               </select>

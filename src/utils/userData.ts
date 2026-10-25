@@ -1,7 +1,25 @@
 // Dummy User Data für Benutzerverwaltung
-import { faker } from '@faker-js/faker';
 
-const GROUPS = [
+export interface UserGroup {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface UserRecord {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+  group: string;
+  groupName: string;
+  permissions: string[];
+  status: string;
+  created: string;
+}
+
+const GROUPS: UserGroup[] = [
   { id: 'admin', name: 'Administratoren', description: 'Vollzugriff auf alle Systeme' },
   { id: 'archiv', name: 'Archivaufsicht', description: 'Zugriff auf Archivdaten' },
   { id: 'it', name: 'IT-Betrieb', description: 'Technische Verwaltung & Wartung' },
@@ -9,7 +27,8 @@ const GROUPS = [
   { id: 'gast', name: 'Gast', description: 'Eingeschränkter Zugriff' }
 ];
 
-export function generateUserData(count = 8) {
+export async function generateUserData(count = 8): Promise<UserRecord[]> {
+  const { faker } = await import('@faker-js/faker');
   return Array.from({ length: count }).map(() => {
     const group = faker.helpers.arrayElement(GROUPS);
     return {

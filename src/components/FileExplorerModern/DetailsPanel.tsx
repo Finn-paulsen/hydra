@@ -1,6 +1,7 @@
 import React from 'react';
+import type { FileEntry } from './types';
 
-export default function DetailsPanel({ item }) {
+export default function DetailsPanel({ item }: { item: FileEntry | null }) {
   if (!item) return null;
   return (
     <div className="details-panel">

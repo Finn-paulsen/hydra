@@ -7,16 +7,20 @@ import './SystemSettings.css';
  * Benutzer-Management, Netzwerk-Konfiguration, Sicherheitseinstellungen
  */
 
+interface SystemUser { id: number; username: string; role: string; status: string; lastLogin: string; }
+interface NetworkConfig { hostname: string; ipAddress: string; gateway: string; dns1: string; dns2: string; encryption: string; firewallStatus: string; }
+interface SecuritySettings { passwordPolicy: string; mfaRequired: boolean; sessionTimeout: string; auditLogging: string; dataEncryption: string; backupSchedule: string; }
+
 export default function SystemSettings() {
   const [activeTab, setActiveTab] = useState('users');
-  const [users, setUsers] = useState([
+  const [users, setUsers] = useState<SystemUser[]>([
     { id: 1, username: 'deepagent', role: 'ADMIN', status: 'ACTIVE', lastLogin: '2024-05-03 14:32' },
     { id: 2, username: 'analyst_01', role: 'ANALYST', status: 'ACTIVE', lastLogin: '2024-05-03 10:15' },
     { id: 3, username: 'monitor_sys', role: 'MONITOR', status: 'IDLE', lastLogin: '2024-05-02 23:45' },
     { id: 4, username: 'archive_bot', role: 'SERVICE', status: 'ACTIVE', lastLogin: '2024-05-03 14:28' },
   ]);
 
-  const [networkConfig, setNetworkConfig] = useState({
+  const [networkConfig, setNetworkConfig] = useState<NetworkConfig>({
     hostname: 'GOV-ARCHIVE-TERMINAL-01',
     ipAddress: '192.168.1.50',
     gateway: '192.168.1.1',
@@ -26,7 +30,7 @@ export default function SystemSettings() {
     firewallStatus: 'ENABLED',
   });
 
-  const [securitySettings, setSecuritySettings] = useState({
+  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
     passwordPolicy: 'STRICT',
     mfaRequired: true,
     sessionTimeout: '30 minutes',
@@ -52,15 +56,15 @@ export default function SystemSettings() {
     }
   };
 
-  const handleDeleteUser = (id) => {
+  const handleDeleteUser = (id: number) => {
     setUsers(users.filter(u => u.id !== id));
   };
 
-  const handleNetworkChange = (field, value) => {
+  const handleNetworkChange = (field: keyof NetworkConfig, value: string) => {
     setNetworkConfig({ ...networkConfig, [field]: value });
   };
 
-  const handleSecurityChange = (field, value) => {
+  const handleSecurityChange = (field: keyof SecuritySettings, value: string | boolean) => {
     setSecuritySettings({ ...securitySettings, [field]: value });
   };
 

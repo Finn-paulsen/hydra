@@ -1,7 +1,14 @@
 import React, { useEffect } from 'react';
 import './Toast.css';
 
-export default function Toast({ message, show, onClose, type = 'error' }) {
+interface ToastProps {
+  message: React.ReactNode;
+  show: boolean;
+  onClose?: () => void;
+  type?: string;
+}
+
+export default function Toast({ message, show, onClose, type = 'error' }: ToastProps) {
   useEffect(() => {
     if (show) {
       const timer = setTimeout(() => onClose && onClose(), 2500);
