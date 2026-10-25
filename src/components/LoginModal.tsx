@@ -104,28 +104,8 @@ function playSuccessChime() {
 function playPolicyBeep() { playTone(400, 50, 'square', 0.03) }
 
 // ─── Boot-Sequenz Zeilen ──────────────────────────────────────────────────────
-// Statische Zeilen in zwei Blöcken
-const BOOT_LINES_STATIC_PRE = [
+const BOOT_LINES = [
   { text: '', delay: 400 },
-  { text: 'SIEMENS NIXDORF PCD-4H  BIOS v2.07  (C) 1994', delay: 800 },
-  { text: 'COPYRIGHT (C) SIEMENS NIXDORF INFORMATIONSSYSTEME AG, 1987-1994', delay: 1200 },
-  { text: '', delay: 600 },
-  { text: 'BIOS-DATUM: 14.03.1994  SERIENNUMMER: SN-4H-0038471', delay: 1800 },
-  { text: '', delay: 400 },
-  { text: 'SPEICHERTEST LÄUFT', delay: 3600 },
-  { text: 'BIOS-ERWEITERUNG: SCSI-CONTROLLER  IRQ=11  I/O=0x330  OK', delay: 2400 },
-  { text: 'BIOS-ERWEITERUNG: VGA-BIOS  CIRRUS LOGIC  v1.62  OK', delay: 1800 },
-  { text: '', delay: 500 },
-  { text: 'FESTPLATTEN-CONTROLLER: IDE  IRQ=14  I/O=0x1F0', delay: 2200 },
-  { text: 'FESTPLATTE 0:  SEAGATE ST-31200N  1.2 GB  [CHS=2484/16/63]  OK', delay: 3400 },
-  { text: 'FESTPLATTE 1:  NICHT VORHANDEN', delay: 1200 },
-  { text: 'CD-ROM-LAUFWERK:  NEC CDR-260  [ATAPI]  OK', delay: 1800 },
-  { text: '', delay: 400 },
-]
-
-const BOOT_LINES_STATIC_POST = [
-  { text: 'NETZWERKADAPTER: 3COM ETHERLINK III  IRQ=10  I/O=0x300  DMA=3', delay: 2800 },
-  { text: 'MAC-ADRESSE: WIRD GELESEN...', delay: 2200 },
   { text: 'PROTOKOLL-STACK: TCP/IP v3.11  IPX/SPX v2.0  NETBIOS  GELADEN', delay: 2600 },
   { text: 'SICHERHEITSMODUL: REV.7  SIGNATURPRÜFUNG...', delay: 3200 },
   { text: 'SICHERHEITSMODUL: SIGNATUR OK  INITIALISIERT', delay: 2000 },
@@ -419,17 +399,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
     let cancelled = false
 
     async function runBoot() {
-      // Statische Zeilen zuerst
-      for (const item of BOOT_LINES_STATIC_PRE) {
-        if (cancelled) return
-        await new Promise(r => setTimeout(r, item.delay + Math.random() * 400))
-        if (cancelled) return
-        setBootLines(prev => [...prev, item.text])
-        playTone(420 + Math.random() * 80, 22, 'square', 0.015)
-      }
-
-      // Statische Zeilen danach
-      for (const item of BOOT_LINES_STATIC_POST) {
+      for (const item of BOOT_LINES) {
         if (cancelled) return
         await new Promise(r => setTimeout(r, item.delay + Math.random() * 500))
         if (cancelled) return
