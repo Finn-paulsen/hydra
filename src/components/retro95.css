@@ -1,0 +1,304 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   GOV-ARCHIVE – Windows 95/98 Behördenrechner, gealtert
+   Überschreibt desktop.css (muss danach importiert werden).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --w95-face:      #c0c0c0;
+  --w95-light:     #ffffff;
+  --w95-hilite:    #dfdfdf;
+  --w95-shadow:    #808080;
+  --w95-dark:      #000000;
+  --w95-title1:    #000080;
+  --w95-title2:    #1084d0;
+  --w95-desktop:   #008080;
+
+  --xp-gray:           var(--w95-face);
+  --xp-btn-face:       var(--w95-face);
+  --xp-btn-shadow:     var(--w95-shadow);
+  --xp-selection:      var(--w95-title1);
+  --font-sys: 'MS Sans Serif', 'Microsoft Sans Serif', Tahoma, Arial, sans-serif;
+
+  --w95-raised: inset -1px -1px 0 var(--w95-dark), inset 1px 1px 0 var(--w95-light),
+                inset -2px -2px 0 var(--w95-shadow), inset 2px 2px 0 var(--w95-hilite);
+  --w95-sunken: inset -1px -1px 0 var(--w95-light), inset 1px 1px 0 var(--w95-shadow),
+                inset -2px -2px 0 var(--w95-hilite), inset 2px 2px 0 var(--w95-dark);
+}
+
+/* ─── Desktop ────────────────────────────────────────────────────────────────*/
+.win95-desktop {
+  background: var(--w95-desktop);
+  background-image: none;
+  font-size: 11px;
+  cursor: default;
+}
+
+.win95-icon { border-radius: 0; transition: none; }
+.win95-icon:hover { border-color: transparent; background: transparent; }
+.win95-icon-selected {
+  border: 1px dotted #ffff00 !important;
+  background: transparent !important;
+}
+.win95-icon-selected .win95-icon-label {
+  background: var(--w95-title1);
+  outline: 1px dotted #ffff00;
+}
+.win95-icon-img { filter: none; image-rendering: pixelated; }
+.win95-icon-label { text-shadow: 1px 1px 0 #000; border-radius: 0; }
+
+/* ─── Taskleiste ─────────────────────────────────────────────────────────────*/
+.win95-taskbar {
+  height: 32px;
+  background: var(--w95-face);
+  border-top: 1px solid var(--w95-hilite);
+  box-shadow: inset 0 1px 0 var(--w95-light);
+  padding: 3px 2px 2px;
+}
+
+.win95-start-btn,
+.win95-taskbar-btn,
+.win95-btn,
+.gov-window-buttons button,
+.win95-modal-titlebar button {
+  background: var(--w95-face);
+  border: none;
+  border-radius: 0;
+  box-shadow: var(--w95-raised);
+  color: #000;
+  text-shadow: none;
+  font-family: var(--font-sys);
+}
+
+.win95-start-btn {
+  height: 26px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-style: normal;
+  letter-spacing: 0;
+}
+.win95-start-text { font-style: normal; font-size: 11px; }
+.win95-start-logo { filter: grayscale(0.4); font-size: 14px; }
+
+.win95-start-btn:hover,
+.win95-btn:hover { background: var(--w95-face); border: none; }
+
+.win95-start-btn:active,
+.win95-start-btn-active,
+.win95-btn:active,
+.win95-taskbar-btn-active,
+.gov-window-buttons button:active {
+  background: var(--w95-face) !important;
+  box-shadow: var(--w95-sunken) !important;
+  filter: none;
+}
+
+.win95-taskbar-btn { height: 26px; min-width: 100px; }
+.win95-taskbar-btn-active {
+  font-weight: bold;
+  background-image: repeating-conic-gradient(var(--w95-light) 0% 25%, var(--w95-face) 0% 50%) !important;
+  background-size: 2px 2px !important;
+}
+.win95-taskbar-btn-min { opacity: 1; }
+
+.win95-taskbar-sep {
+  border-left: 1px solid var(--w95-shadow);
+  border-right: 1px solid var(--w95-light);
+}
+.win95-tray-sep { display: none; }
+
+.win95-tray-icons,
+.win95-tray-clock {
+  background: transparent;
+  border-radius: 0;
+  color: #000;
+  text-shadow: none;
+  box-shadow: inset 1px 1px 0 var(--w95-shadow), inset -1px -1px 0 var(--w95-light);
+  height: 24px;
+}
+
+/* ─── Startmenü ──────────────────────────────────────────────────────────────*/
+.win95-startmenu {
+  background: var(--w95-face);
+  border: none;
+  border-radius: 0;
+  box-shadow: var(--w95-raised);
+  bottom: 32px;
+  padding: 2px;
+}
+.win95-startmenu-sidebar { background: linear-gradient(to top, var(--w95-title1), #5a5a8a); }
+.win95-startmenu-sidebar-text { font-size: 16px; text-shadow: none; letter-spacing: 0.05em; }
+.win95-startmenu-items { background: var(--w95-face); }
+.win95-startmenu-item:hover { background: var(--w95-title1); color: #fff; }
+.win95-startmenu-divider {
+  background: var(--w95-shadow);
+  box-shadow: 0 1px 0 var(--w95-light);
+}
+
+/* ─── Fenster ────────────────────────────────────────────────────────────────*/
+.gov-window,
+.win95-modal {
+  background: var(--w95-face);
+  border: none;
+  border-radius: 0;
+  box-shadow: var(--w95-raised), 2px 2px 0 rgba(0, 0, 0, 0.35);
+  padding: 3px;
+}
+
+.gov-window-titlebar,
+.win95-modal-titlebar {
+  background: linear-gradient(to right, var(--w95-title1), var(--w95-title2));
+  border-radius: 0;
+  height: 20px;
+  padding: 2px 3px;
+}
+
+.gov-window-title,
+.win95-modal-titlebar span {
+  font-size: 11px;
+  text-shadow: none;
+  font-family: var(--font-sys);
+}
+
+.gov-window-buttons { gap: 2px; }
+.gov-window-buttons button,
+.win95-modal-titlebar button {
+  width: 16px;
+  height: 14px;
+  font-size: 9px;
+  filter: none;
+}
+.gov-window-buttons button:nth-child(1),
+.gov-window-buttons button:nth-child(2),
+.gov-window-buttons button:nth-child(3),
+.win95-modal-titlebar button {
+  background: var(--w95-face);
+}
+.gov-window-buttons button:nth-child(3) { margin-left: 2px; }
+.gov-window-buttons button:hover { filter: none; }
+
+.gov-window-content,
+.win95-modal-body,
+.win95-modal-actions { background: var(--w95-face); }
+
+.win95-modal-bg { background: rgba(0, 0, 0, 0.25); }
+
+.win95-btn { min-width: 75px; height: 23px; }
+
+/* ─── Eingabefelder, Menüs, Scrollbalken ─────────────────────────────────────*/
+.search-input {
+  border: none;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: var(--w95-sunken);
+}
+
+.context-menu {
+  background: var(--w95-face);
+  border: none;
+  box-shadow: var(--w95-raised);
+  padding: 3px;
+}
+.context-menu-item:hover { background: var(--w95-title1); }
+
+.xp-notification {
+  border-radius: 0;
+  border: 1px solid #000;
+  background: #ffffe1;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--w95-hilite);
+  background-image: repeating-conic-gradient(var(--w95-light) 0% 25%, var(--w95-face) 0% 50%);
+  background-size: 2px 2px;
+  border: none;
+}
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-button {
+  background: var(--w95-face);
+  border: none;
+  border-radius: 0;
+  box-shadow: var(--w95-raised);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--w95-face); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Alterungseffekte: Vergilbung, Rauschen, Scanlines, Flackern, Kratzer
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Vergilbtes Plastik + Vignette + Scanlines */
+.win95-desktop::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60000;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, rgba(255, 220, 130, 0.10) 40%, rgba(40, 20, 0, 0.45) 100%);
+  mix-blend-mode: multiply;
+  animation: crt-flicker 0.12s infinite steps(2);
+}
+
+/* Filmkorn/Rauschen + Kratzer */
+.win95-desktop::after {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  pointer-events: none;
+  z-index: 60001;
+  opacity: 0.16;
+  background-image:
+    linear-gradient(to right, transparent 12%, rgba(255, 255, 255, 0.55) 12.1%, transparent 12.3%),
+    linear-gradient(to right, transparent 67%, rgba(255, 255, 255, 0.35) 67.1%, transparent 67.2%),
+    linear-gradient(to right, transparent 84%, rgba(0, 0, 0, 0.5) 84.1%, transparent 84.25%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.45  0 0 0 0 0.3  0 0 0 1.2 -0.2'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  animation: grain-shift 0.5s infinite steps(5), scratch-jitter 7s infinite steps(1);
+}
+
+/* Heller Störstreifen, der langsam durchs Bild läuft */
+.win95-taskbar::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 90px;
+  pointer-events: none;
+  z-index: 60002;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 220, 0.07), transparent);
+  animation: roll-bar 9s linear infinite;
+}
+
+@keyframes crt-flicker {
+  0%   { opacity: 0.95; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.9; }
+}
+
+@keyframes grain-shift {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-3%, 2%); }
+  40%  { transform: translate(2%, -4%); }
+  60%  { transform: translate(-4%, -1%); }
+  80%  { transform: translate(3%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes scratch-jitter {
+  0%, 100% { background-position: 0 0, 0 0, 0 0, 0 0; }
+  25%      { background-position: 14vw 0, -9vw 0, 6vw 0, 0 0; }
+  50%      { background-position: -7vw 0, 18vw 0, -12vw 0, 0 0; }
+  75%      { background-position: 22vw 0, 4vw 0, 15vw 0, 0 0; }
+}
+
+@keyframes roll-bar {
+  from { transform: translateY(-100px); }
+  to   { transform: translateY(105vh); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .win95-desktop::before,
+  .win95-desktop::after,
+  .win95-taskbar::before { animation: none; }
+}

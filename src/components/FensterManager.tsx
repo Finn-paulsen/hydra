@@ -6,6 +6,7 @@ import FileEditor from './FileEditor'
 import DraggableWindow from './DraggableWindow'
 import UserManager from './UserManager'
 import './desktop.css'
+import './retro95.css'
 
 const GovTerminal = lazy(() => import('./GovTerminal'))
 
