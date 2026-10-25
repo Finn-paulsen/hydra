@@ -11,19 +11,25 @@ interface AlarmSequenceItem { leftMsg: string; cmdTitle: string; cmdLines: strin
 interface NetworkConnection { effectiveType?: string; downlink?: number }
 interface ExtendedNavigator extends Navigator { deviceMemory?: number; connection?: NetworkConnection; mozConnection?: NetworkConnection; webkitConnection?: NetworkConnection }
 
+// Hinweis-Texte (Platzhalter) in den Login-Feldern, nur für die Testphase. Auf false setzen zum Ausblenden.
+const SHOW_LOGIN_HINT = true
+
 // Benutzer mit Rollen und Zugriffsrechten
 const VALID_CREDENTIALS: Credential[] = [
+  { user: 'mike',  pass: '12345', role: 'admin', permissions: ['read', 'write', 'delete', 'manage'], displayName: 'Mike',           clearance: 'STUFE III' },
   { user: 'demo',  pass: 'demo',  role: 'user',  permissions: ['read'],                          displayName: 'Demo-Benutzer',  clearance: 'STUFE I'   },
   { user: 'test',  pass: 'test',  role: 'user',  permissions: ['read', 'write'],                  displayName: 'Test-Benutzer',  clearance: 'STUFE II'  },
   { user: 'admin', pass: 'admin', role: 'admin', permissions: ['read', 'write', 'delete', 'manage'], displayName: 'Administrator', clearance: 'STUFE IV'  },
 ]
 
+// Benutzername ist unabhängig von Groß-/Kleinschreibung, das Kennwort nicht
 function isValidCredential(u: string, p: string): boolean {
-  return VALID_CREDENTIALS.some(e => e.user === u && e.pass === p)
+  return getCredential(u, p) !== null
 }
 
 function getCredential(u: string, p: string): Credential | null {
-  return VALID_CREDENTIALS.find(e => e.user === u && e.pass === p) || null
+  const name = u.trim().toLowerCase()
+  return VALID_CREDENTIALS.find(e => e.user === name && e.pass === p) || null
 }
 
 // ─── Audio Engine ─────────────────────────────────────────────────────────────
@@ -907,6 +913,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
               className="retro-input"
               value={user}
               onChange={e => { setUser(e.target.value); playKeyClick() }}
+              placeholder={SHOW_LOGIN_HINT ? 'Mike' : undefined}
               disabled={busy}
               autoComplete="username"
               spellCheck={false}
@@ -920,6 +927,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
               className="retro-input"
               value={pass}
               onChange={e => { setPass(e.target.value); playKeyClick() }}
+              placeholder={SHOW_LOGIN_HINT ? '12345' : undefined}
               disabled={busy}
               autoComplete="current-password"
               spellCheck={false}
