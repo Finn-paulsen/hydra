@@ -6,10 +6,7 @@ import { useUserProfile } from '../hooks/useUserProfile'
 import './LoginModal.css'
 
 interface Credential { user: string; pass: string; role: string; permissions: string[]; displayName: string; clearance: string }
-interface BootLine { text: string; delay: number }
 interface AlarmSequenceItem { leftMsg: string; cmdTitle: string; cmdLines: string[] }
-interface NetworkConnection { effectiveType?: string; downlink?: number }
-interface ExtendedNavigator extends Navigator { deviceMemory?: number; connection?: NetworkConnection; mozConnection?: NetworkConnection; webkitConnection?: NetworkConnection }
 
 // Hinweis-Texte (Platzhalter) in den Login-Feldern, nur für die Testphase. Auf false setzen zum Ausblenden.
 const SHOW_LOGIN_HINT = true
@@ -106,58 +103,8 @@ function playSuccessChime() {
 
 function playPolicyBeep() { playTone(400, 50, 'square', 0.03) }
 
-// ─── Echte PC-Ressourcen via Browser-APIs ─────────────────────────────────────
-async function detectHardware(): Promise<BootLine[]> {
-  const lines = []
-
-  // CPU-Kerne
-  const cores = navigator.hardwareConcurrency || 1
-  // Wir zeigen das als "Prozessor-Einheiten" – reale Zahl
-  const cpuModel = cores <= 2 ? 'Intel 486DX2/66  [64-BIT ERWEITERUNG: AKTIV]' : cores <= 4 ? 'Intel Pentium 133 MHz  [64-BIT]' : 'Intel Pentium II 266 MHz  [64-BIT]'
-  lines.push({ text: 'PROZESSOR: ' + cpuModel, delay: 2800 })
-  lines.push({ text: 'PROZESSOR-KERNE: ' + cores + '  MODUS: PROTECTED  BUS: ISA/PCI', delay: 2200 })
-
-  // RAM – navigator.deviceMemory (in GB, gerundet)
-  const ramGB = (navigator as ExtendedNavigator).deviceMemory || 0.5
-  const ramMB = Math.round(ramGB * 1024)
-  const ramDisplay = ramMB >= 1024 ? Math.round(ramMB / 1024) + ' GB' : ramMB + ' MB'
-  lines.push({ text: 'SPEICHERTEST: ' + ramDisplay + ' GESAMT...', delay: 3200 })
-  lines.push({ text: 'KONVENTIONELL: 640K  ERWEITERT (EMS): ' + (ramMB - 1) + ' MB  FREI: ' + Math.round(ramMB * 0.87) + ' MB', delay: 2600 })
-
-  // Verbindungstyp
-  const extendedNavigator = navigator as ExtendedNavigator
-  const conn = extendedNavigator.connection || extendedNavigator.mozConnection || extendedNavigator.webkitConnection
-  let netType = 'UNBEKANNT'
-  let netSpeed = '---'
-  if (conn) {
-    netType = conn.effectiveType ? conn.effectiveType.toUpperCase() : 'LAN'
-    netSpeed = conn.downlink ? Math.round(conn.downlink) + ' Mbit/s' : '---'
-  }
-  lines.push({ text: 'NETZWERK-ADAPTER: WIRD ERKANNT...', delay: 2800 })
-  lines.push({ text: 'ADAPTER: 3COM ETHERLINK III  IRQ=10  I/O=0x300  DMA=3', delay: 2400 })
-  lines.push({ text: 'VERBINDUNGSTYP: ' + netType + '  GESCHWINDIGKEIT: ' + netSpeed, delay: 1800 })
-
-  // Bildschirmauflösung
-  const sw = window.screen.width; const sh = window.screen.height
-  const cd = window.screen.colorDepth || 8
-  lines.push({ text: 'GRAFIKKARTE: CIRRUS LOGIC GD5428  VRAM: 1 MB', delay: 2200 })
-  lines.push({ text: 'AUFLÖSUNG: ' + sw + 'x' + sh + '  FARBTIEFE: ' + cd + ' BIT  REFRESH: 60 Hz', delay: 1600 })
-
-  // Sprache / Zeitzone
-  const lang = navigator.language || 'DE'
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin'
-  lines.push({ text: 'REGION: ' + lang.toUpperCase() + '  ZEITZONE: ' + tz + '  CODEPAGE: 850', delay: 1800 })
-
-  // Plattform
-  const platform = navigator.platform || 'Win32'
-  lines.push({ text: 'BETRIEBSSYSTEM: ' + platform.toUpperCase() + '  [WINDOWS NT 4.0 SP6a]', delay: 2000 })
-  lines.push({ text: 'SICHERHEITSSTUFE: HOCH  AUDIT: AKTIV  PROTOKOLL: AKTIVIERT', delay: 1600 })
-
-  return lines
-}
-
 // ─── Boot-Sequenz Zeilen ──────────────────────────────────────────────────────
-// Statische Zeilen kommen zuerst, dann dynamische Hardware-Erkennung
+// Statische Zeilen in zwei Blöcken
 const BOOT_LINES_STATIC_PRE = [
   { text: '', delay: 400 },
   { text: 'SIEMENS NIXDORF PCD-4H  BIOS v2.07  (C) 1994', delay: 800 },
@@ -174,7 +121,6 @@ const BOOT_LINES_STATIC_PRE = [
   { text: 'FESTPLATTE 1:  NICHT VORHANDEN', delay: 1200 },
   { text: 'CD-ROM-LAUFWERK:  NEC CDR-260  [ATAPI]  OK', delay: 1800 },
   { text: '', delay: 400 },
-  { text: 'HARDWARE-ERKENNUNG LÄUFT...', delay: 2400 },
 ]
 
 const BOOT_LINES_STATIC_POST = [
@@ -468,7 +414,7 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
     return () => clearInterval(t)
   }, [])
 
-  // Boot-Sequenz mit echter Hardware-Erkennung
+  // Boot-Sequenz
   useEffect(() => {
     let cancelled = false
 
@@ -480,17 +426,6 @@ export default function LoginModal({ onSuccess }: LoginModalProps) {
         if (cancelled) return
         setBootLines(prev => [...prev, item.text])
         playTone(420 + Math.random() * 80, 22, 'square', 0.015)
-      }
-
-      // Echte Hardware-Erkennung
-      if (cancelled) return
-      const hwLines = await detectHardware()
-      for (const item of hwLines) {
-        if (cancelled) return
-        await new Promise(r => setTimeout(r, item.delay + Math.random() * 600))
-        if (cancelled) return
-        setBootLines(prev => [...prev, item.text])
-        playTone(380 + Math.random() * 60, 20, 'square', 0.012)
       }
 
       // Statische Zeilen danach
