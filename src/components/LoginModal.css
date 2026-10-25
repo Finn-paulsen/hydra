@@ -320,6 +320,13 @@
   text-shadow: 0 0 10px var(--amber), 0 0 4px var(--amber-dim);
 }
 
+/* Hinweis-Text: blass, verschwindet automatisch sobald etwas getippt wird */
+.retro-input::placeholder {
+  color: var(--amber-dim);
+  opacity: 0.55;
+  text-shadow: none;
+}
+
 .retro-input:disabled {
   opacity: 0.45;
 }
