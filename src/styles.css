@@ -1,6 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@plugin "daisyui";
+@source "../index.html";
+@source "../public/**/*.html";
 
 /* Custom CRT-Styles und Variablen erhalten */
 :root{
